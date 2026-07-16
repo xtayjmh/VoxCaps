@@ -7,7 +7,7 @@
     "跨越 UI 绘制、品牌、构建产物、GitHub 仓库和 Obsidian 文档",
     "包含仓库改名、主分支直接推送和分支保护外部状态变更"
   ],
-  "stage": "DIFF_REVIEW",
+  "stage": "DONE",
   "planReview": {
     "attempt": 1,
     "result": "APPROVED",
@@ -25,5 +25,5 @@
   "toolFallbacks": [
     "独立 reviewer 不可用，计划评审降级为主会话隔离自审"
   ],
-  "status": "active"
+  "status": "complete"
 }

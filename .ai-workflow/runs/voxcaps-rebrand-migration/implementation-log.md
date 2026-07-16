@@ -8,3 +8,7 @@
 - 2026-07-16：8 个单元测试、compileall、两套 PyInstaller 和 ZIP 内容核验通过。
 - 2026-07-16：发现纯客户端包缺失 LICENSE/NOTICE，修复两个 spec 后重新构建并验证。
 - 2026-07-16：创建 Obsidian 项目主页并加入 `01_Projects/项目说明.md` 索引。
+- 2026-07-16：将全部功能提交快进合并到 `master` 并推送，不再使用 PR 合并流程。
+- 2026-07-16：GitHub 仓库更名为 `xtayjmh/VoxCaps`，旧 PR 已由 GitHub 标记为已合并。
+- 2026-07-16：启用 `master` 分支保护：线性历史开启，强制推送与分支删除关闭。
+- 2026-07-16：在 `B:\VoxCaps` 建立正式工作副本，配置 origin/upstream，并复制两套已验证 ZIP。
