@@ -49,6 +49,7 @@ class ShortcutManager:
         """
         self.app = app
         self.shortcuts = shortcuts
+        self._validate_keyboard_shortcuts(shortcuts)
         from config_client import ClientConfig as Config
 
         # 监听器
@@ -86,6 +87,28 @@ class ShortcutManager:
 
         # 初始化快捷键任务
         self._init_tasks()
+
+    @staticmethod
+    def _validate_keyboard_shortcuts(shortcuts: List[Shortcut]) -> None:
+        """拒绝 CapsLock 之外的键盘语音入口；鼠标快捷键不受影响。"""
+        enabled_keyboard = [
+            shortcut
+            for shortcut in shortcuts
+            if shortcut.enabled and shortcut.type == 'keyboard'
+        ]
+        invalid = [
+            shortcut.key
+            for shortcut in enabled_keyboard
+            if shortcut.key != 'caps_lock'
+        ]
+        if invalid:
+            keys = ', '.join(invalid)
+            raise ValueError(
+                f'VoxCaps 仅支持 CapsLock 作为键盘语音快捷键，'
+                f'请移除或禁用：{keys}。'
+            )
+        if len(enabled_keyboard) > 1:
+            raise ValueError('CapsLock 键盘语音快捷键只能配置一次。')
 
     @property
     def state(self) -> ClientState:

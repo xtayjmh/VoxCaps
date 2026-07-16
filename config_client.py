@@ -113,30 +113,10 @@ r"""
 
 可用按键名称：
 
-  字母数字：a - z, 0 - 9（大键盘）
-
-  符号键：, . / \ ` ' - = [ ] ; '
-
-
-  功能键：f1 - f24
-
-  控制键:
-      ctrl_l,   ctrl_r,
-      shift,  shift_r,
-      alt_l,    alt_gr,
-      cmd,    cmd_r
-
-  特殊键：
-      space, enter, tab, backspace, delete, insert, home, end
-      page_up, page_down, esc, caps_lock, num_lock, scroll_lock
-      print_screen, pause, menu
-
-  方向键：up, down, left, right
-
+  键盘语音键：caps_lock（唯一支持的键盘语音入口）
   鼠标键：x1, x2
 
 示例配置：
-  {'key': 'caps_lock', 'type': 'keyboard', 'suppress': False, 'hold_mode': True, 'enabled': True}, 
-  {'key': 'f12', 'type': 'keyboard', 'suppress': True, 'hold_mode': True, 'enabled': True}, 
+  {'key': 'caps_lock', 'type': 'keyboard', 'suppress': True, 'hold_mode': True, 'enabled': True},
   {'key': 'x2', 'type': 'mouse', 'suppress': True, 'hold_mode': True, 'enabled': True}, 
 """

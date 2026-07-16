@@ -122,25 +122,3 @@ class CommonShortcuts:
             hold_mode=True,
             threshold=0.3,
         )
-
-    @staticmethod
-    def f12() -> Shortcut:
-        """F12 键"""
-        return Shortcut(
-            key='f12',
-            type='keyboard',
-            suppress=False,
-            hold_mode=True,
-            threshold=0.3
-        )
-
-    @staticmethod
-    def space() -> Shortcut:
-        """空格键"""
-        return Shortcut(
-            key='space',
-            type='keyboard',
-            suppress=False,
-            hold_mode=True,
-            threshold=0.3
-        )
