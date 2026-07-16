@@ -52,6 +52,12 @@ class WebSocketManager:
         """
         self.app = app
         self._connect_fail_logged = False  # 断联后只记一次失败日志
+        self._connection_generation = 0
+
+    @property
+    def connection_generation(self) -> int:
+        """返回当前连接的本地单调代次，用于隔离断线前后的请求。"""
+        return self._connection_generation
 
     @property
     def state(self) -> ClientState:
@@ -98,6 +104,7 @@ class WebSocketManager:
                 kwargs["proxy"] = None  
             
             self.state.websocket = await websockets.connect(**kwargs)
+            self._connection_generation += 1
 
             console.print(f'[bold green]已连接服务端: {url}[/bold green]\n')
             logger.info(f"WebSocket 建立成功: {url}")

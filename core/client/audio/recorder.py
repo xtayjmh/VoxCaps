@@ -19,7 +19,7 @@ import websockets
 from config_client import ClientConfig as Config
 from core.client.state import console
 from core.client.audio.file_manager import AudioFileManager
-from core.client.connection import WebSocketManager
+from core.client.connection import CommunicationError, WebSocketManager
 from core.protocol import AudioMessage
 from . import logger
 
@@ -70,15 +70,29 @@ class AudioRecorder:
             if message.is_final:
                 self.state.pop_audio_file(message.task_id)
                 self.app.island.error(message.task_id, '服务端未连接')
+                self.app.delivery_order.fail(message.task_id)
                 console.print('    服务端未连接，无法发送\n')
                 logger.warning("服务端未连接，无法发送音频数据")
             return
         
         # 使用 WebSocketManager 发送协议消息
-        success = await self._ws_manager.send(message)
+        if message.is_final:
+            submitted = self.app.delivery_order.mark_submitted(
+                message.task_id,
+                self._ws_manager.connection_generation,
+            )
+            if not submitted:
+                logger.debug(f"任务已关闭，忽略迟到的 final 发送: {message.task_id}")
+                return
+        try:
+            success = await self._ws_manager.send(message)
+        except CommunicationError as exc:
+            logger.warning(f"音频发送失败: {exc}")
+            success = False
         if not success and message.is_final:
             self.state.pop_audio_file(message.task_id)
             self.app.island.error(message.task_id, '音频发送失败')
+            self.app.delivery_order.fail(message.task_id)
             # 具体错误日志由 WebSocketManager 记录
     
     async def record_and_send(self) -> None:
@@ -205,6 +219,8 @@ class AudioRecorder:
         except Exception as e:
             logger.error(f"录音任务错误: {e}", exc_info=True)
             self.app.island.error(self.task_id, str(e))
+            if self.task_id:
+                self.app.delivery_order.fail(self.task_id)
     
     def get_file_manager(self) -> Optional[AudioFileManager]:
         """获取当前的文件管理器"""

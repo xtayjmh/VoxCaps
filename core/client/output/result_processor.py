@@ -71,6 +71,10 @@ class ResultProcessor:
         self.app = app
         self._exit_event = asyncio.Event()
         self._loop = asyncio.get_running_loop()  # 保存事件循环引用
+        self._delivery_task = asyncio.create_task(
+            self._delivery_loop(),
+            name='VoxCapsOrderedDelivery',
+        )
 
     @property
     def state(self) -> ClientState:
@@ -104,10 +108,17 @@ class ResultProcessor:
         # 线程安全地设置事件
         if self._loop.is_running():
             self._loop.call_soon_threadsafe(self._exit_event.set)
+            self._loop.call_soon_threadsafe(self._stop_delivery)
             logger.debug("已通过 call_soon_threadsafe 设置退出事件")
         else:
             self._exit_event.set()
+            self._stop_delivery()
             logger.debug("已直接设置退出事件")
+
+    def _stop_delivery(self) -> None:
+        if not self._delivery_task.done():
+            self._delivery_task.cancel()
+        self.app.delivery_order.clear()
     
     def _format_llm_result(self, llm_result) -> str:
         """格式化 LLM 结果输出"""
@@ -163,6 +174,7 @@ class ResultProcessor:
             if not await self.ws.connect():
                 await asyncio.sleep(2)
                 continue
+            connection_generation = self.ws.connection_generation
 
             # 2. 消息接收循环
             while not self._exit_event.is_set():
@@ -176,11 +188,43 @@ class ResultProcessor:
                     self.app.island.error(getattr(message, 'task_id', None), str(e))
                     break
 
+            if self._exit_event.is_set():
+                self.app.delivery_order.clear()
+            else:
+                # 只跳过已提交到旧连接的 final 请求。仍在录音、尚未提交
+                # final 的会话保留，允许其在重连后继续完成。
+                self.app.delivery_order.fail_submitted(connection_generation)
             console.print(f'[bold red]已断开服务端连接[/bold red]\n')
             self._cleanup()
             
 
     async def _handle_message(self, message: Optional[RecognitionMessage]) -> None:
+        """接收服务端消息；最终结果先进入顺序送达队列。"""
+        if message is None:
+            return
+        if message.is_final:
+            self.app.delivery_order.complete(message.task_id, message)
+            return
+        logger.debug(
+            f"接收到非最终结果，文本: {message.text[:50]}"
+            f"{'...' if len(message.text) > 50 else ''}"
+        )
+
+    async def _delivery_loop(self) -> None:
+        """逐个处理已按录音顺序放行的最终结果。"""
+        while True:
+            message = await self.app.delivery_order.get()
+            try:
+                await self._deliver_message(message)
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                logger.exception(f"结果送达失败: {exc}")
+                self.app.island.error(getattr(message, 'task_id', None), str(exc))
+            finally:
+                self.app.delivery_order.task_done()
+
+    async def _deliver_message(self, message: Optional[RecognitionMessage]) -> None:
         """处理接收到的消息"""
         if message is None:
             return

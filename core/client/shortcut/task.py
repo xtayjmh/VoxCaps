@@ -46,6 +46,7 @@ class ShortcutTask:
         # 任务状态
         self.task: Optional[asyncio.Future] = None
         self.pipeline_task_id: Optional[str] = None
+        self.delivery_sequence: Optional[int] = None
         self.recording_start_time: float = 0.0
         self.is_recording: bool = False
         self._owns_direct_stream: bool = False
@@ -76,6 +77,7 @@ class ShortcutTask:
     def prepare(self) -> None:
         """长按已确认但麦克风尚未就绪时进入准备态。"""
         self.pipeline_task_id = str(uuid.uuid1())
+        self.delivery_sequence = None
         self.app.island.preparing(self.pipeline_task_id)
 
     def cancel_preparing(self) -> None:
@@ -83,6 +85,7 @@ class ShortcutTask:
         if self.pipeline_task_id:
             self.app.island.cancelled(self.pipeline_task_id)
             self.pipeline_task_id = None
+            self.delivery_sequence = None
 
     def launch(self, *, start_time: float | None = None, initial_audio: list[dict] | None = None) -> None:
         """启动录音任务"""
@@ -97,6 +100,10 @@ class ShortcutTask:
         # 记录开始时间
         self.recording_start_time = start_time if start_time is not None else time.time()
         self.pipeline_task_id = self.pipeline_task_id or str(uuid.uuid1())
+        self.delivery_sequence = self.app.delivery_order.register(
+            self.pipeline_task_id,
+            self.recording_start_time,
+        )
         self.is_recording = True
         self.app.island.recording(self.pipeline_task_id)
 
@@ -134,7 +141,10 @@ class ShortcutTask:
         self._status.stop()
         task_id = self.pipeline_task_id
         self.app.island.cancelled(task_id)
+        if task_id:
+            self.app.delivery_order.cancel(task_id)
         self.pipeline_task_id = None
+        self.delivery_sequence = None
 
         if self.task is not None:
             self.task.cancel()
@@ -156,6 +166,7 @@ class ShortcutTask:
         # Recorder 已持有自己的 task_id；释放 ShortcutTask 字段，确保下一次
         # direct/click launch 不会复用旧任务身份。
         self.pipeline_task_id = None
+        self.delivery_sequence = None
 
         asyncio.run_coroutine_threadsafe(
             self.state.queue_in.put({

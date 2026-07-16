@@ -31,6 +31,7 @@ from .udp.udp_control import UDPController
 from .hotword.manager import HotwordManager
 from .llm.llm_handler import LLMHandler
 from .output.text_output import TextOutput
+from .output.ordered_delivery import OrderedDeliveryQueue
 from .diary.diary_writer import DiaryWriter
 from .island import DynamicIslandController
 from core.tools.empty_working_set import empty_current_working_set
@@ -55,6 +56,7 @@ class CapsWriterClient:
             
         # 初始化状态容器
         self.state = ClientState(app=self)
+        self.delivery_order = OrderedDeliveryQueue(self.loop)
 
         # 初始化热词管理器
         self.hotword = HotwordManager(
@@ -107,6 +109,7 @@ class CapsWriterClient:
         # 3. 关闭监控
         self.hotword.stop()
         self.llm.stop()
+        self.delivery_order.clear()
 
         # 4. 关闭 WebSocket 连接
         self.ws.close_sync()
