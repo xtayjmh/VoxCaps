@@ -114,8 +114,8 @@ class ShortcutTask:
             self.app.loop,
         )
 
-    def cancel(self) -> None:
-        """取消录音任务（时间过短）"""
+    def cancel(self, *, release_stream: bool = True) -> None:
+        """取消录音任务；退出阶段可把音频释放交给守护执行器。"""
         logger.debug(f"[{self.shortcut.key}] 取消录音任务（时间过短）")
 
         self.is_recording = False
@@ -127,7 +127,8 @@ class ShortcutTask:
             self.task.cancel()
             self.task = None
         if self._owns_direct_stream:
-            self.app.stream.stop()
+            if release_stream:
+                self.app.stream.stop()
             self._owns_direct_stream = False
 
     def finish(self) -> None:

@@ -73,6 +73,12 @@ class AudioStreamManager:
         """快捷访问状态单例"""
         return self.app.state
 
+    @property
+    def is_capture_active(self) -> bool:
+        """是否有候选、正式或直接录音正在占用麦克风。"""
+        with self._capture_lock:
+            return self._capture_mode is not CaptureMode.IDLE
+
     def _audio_callback(
         self,
         indata: np.ndarray,
@@ -156,6 +162,8 @@ class AudioStreamManager:
         """丢弃候选音频并释放麦克风。"""
         with self._lifecycle_lock:
             with self._capture_lock:
+                if self._capture_mode is not CaptureMode.CANDIDATE:
+                    return
                 self._candidate_frames.clear()
                 self._capture_mode = CaptureMode.IDLE
             self._stop_locked()
@@ -224,15 +232,6 @@ class AudioStreamManager:
 
         except sd.PortAudioError as e:
             logger.error(f"创建音频流失败: {e}", exc_info=True)
-            if '-9999' in str(e):
-                console.print("""
-[bold red]检测到麦克风被占用或权限异常（错误码 -9999）[/bold red]
-请尝试以下解决方案：
-
-  1. 设置 > 隐私和安全性 > 麦克风，将「允许桌面应用访问麦克风」打开
-  2. 状态栏右下角音量图标 > 右键菜单 > 声音 > 麦克风的属性，关闭「允许应用程序独占控制该设备」
-  3. 状态栏右下角音量图标 > 右键菜单 > 声音 > 麦克风的属性，关闭「增强效果」
-""")
             return None
         except Exception as e:
             logger.error(f"创建音频流失败: {e}", exc_info=True)

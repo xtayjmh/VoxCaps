@@ -57,6 +57,11 @@ class TrayManager:
         except Exception as e:
             logger.debug(f"TrayManager: 卸载托盘时发生错误: {e}")
 
+    def notify_microphone_error(self, message: str) -> None:
+        """显示通用麦克风权限/安全策略通知。"""
+        from ..ui import notify_tray
+        notify_tray(message, title='VoxCaps 麦克风')
+
     def _restart_audio(self):
         """重启音频流回调"""
         if hasattr(self.app, 'stream') and self.app.stream:

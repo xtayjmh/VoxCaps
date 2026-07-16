@@ -38,7 +38,7 @@ def set_ui_logger(real_logger):
 # ============================================================
 
 from .toast import toast, toast_stream, ToastMessage, ToastMessageManager
-from .tray import enable_min_to_tray, stop_tray
+from .tray import enable_min_to_tray, notify_tray, stop_tray
 
 __all__ = [
     'logger',
@@ -48,5 +48,6 @@ __all__ = [
     'ToastMessage',
     'ToastMessageManager',
     'enable_min_to_tray',
+    'notify_tray',
     'stop_tray',
 ]

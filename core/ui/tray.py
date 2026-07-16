@@ -389,6 +389,20 @@ def stop_tray() -> None:
     _tray_instance = None
 
 
+def notify_tray(message: str, title: str = 'VoxCaps') -> bool:
+    """通过当前托盘图标发送 Windows 系统通知。"""
+    instance = _tray_instance
+    if instance is None or instance.icon is None:
+        logger.warning(f'托盘通知不可用: {title}: {message}')
+        return False
+    try:
+        instance.icon.notify(message, title)
+        return True
+    except Exception as exc:
+        logger.warning(f'托盘通知发送失败: {exc}')
+        return False
+
+
 if __name__ == "__main__":
     enable_min_to_tray()
     print("程序运行中... 你可以双击托盘图标隐藏我。")

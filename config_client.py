@@ -75,6 +75,9 @@ class ClientConfig:
 
     mic_seg_duration = 60       # 麦克风听写时分段长度：60秒
     mic_seg_overlap = 4         # 麦克风听写时分段重叠：4秒
+    mic_preheat_enabled = True  # 托盘就绪后执行一次麦克风预热并立即释放
+    mic_preheat_delay = 1.0     # 启动后延迟多少秒开始后台预热
+    mic_open_timeout = 1.5      # 预热或按键打开麦克风的最长等待秒数
 
     file_seg_duration = 60      # 转录文件时分段长度
     file_seg_overlap = 4        # 转录文件时分段重叠

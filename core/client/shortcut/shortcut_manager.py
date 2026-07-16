@@ -22,6 +22,7 @@ from core.client.shortcut.emulator import ShortcutEmulator
 from core.client.shortcut.event_handler import ShortcutEventHandler
 from core.client.shortcut.task import ShortcutTask
 from core.client.audio.session import VoiceInputSessionCoordinator
+from core.client.audio.executor import DaemonSerialExecutor
 
 if TYPE_CHECKING:
     from core.client.shortcut.shortcut_config import Shortcut
@@ -48,6 +49,7 @@ class ShortcutManager:
         """
         self.app = app
         self.shortcuts = shortcuts
+        from config_client import ClientConfig as Config
 
         # 监听器
         self.keyboard_listener: Optional[keyboard.Listener] = None
@@ -58,7 +60,7 @@ class ShortcutManager:
 
         # 线程池
         self._pool = ThreadPoolExecutor(max_workers=4)
-        self._mic_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='VoxCapsMic')
+        self._mic_pool = DaemonSerialExecutor(thread_name='VoxCapsMic')
 
         # 按键模拟器
         self._emulator = ShortcutEmulator()
@@ -70,6 +72,8 @@ class ShortcutManager:
             stream=self.app.stream,
             executor=self._mic_pool,
             restore_short_press=self._restore_short_press,
+            notify_microphone_error=self.app.tray.notify_microphone_error,
+            open_timeout=Config.mic_open_timeout,
         )
 
         # 事件处理器
@@ -327,9 +331,13 @@ class ShortcutManager:
         # 取消所有任务
         for task in self.tasks.values():
             if task.is_recording:
-                task.cancel()
+                # voice_sessions.shutdown 已将 stream.stop 排入守护串行执行器；
+                # 此处只取消识别任务，避免退出线程再次同步等待音频驱动。
+                task.cancel(release_stream=False)
 
         # 关闭线程池
-        self._mic_pool.shutdown(wait=False, cancel_futures=True)
+        # 原生音频驱动调用无法被 Python 强制中断；守护 worker 允许进程退出，
+        # 未取消的释放操作会在驱动恢复后按顺序完成。
+        self._mic_pool.shutdown(wait=False, cancel_futures=False)
         self._pool.shutdown(wait=False)
         logger.debug("快捷键管理器线程池已关闭")

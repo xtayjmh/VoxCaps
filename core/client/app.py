@@ -100,7 +100,6 @@ class CapsWriterClient:
         # 1. 停止核心运行组件
         self.udp.stop()
         self.shortcut.stop()
-        self.stream.stop()
         self.island.stop()
 
         # 2. 托盘资源

@@ -30,6 +30,12 @@ class MicRunner:
         # 1. 托盘
         self.tray_manager.start()
 
+        if Config.mic_preheat_enabled:
+            self.app.shortcut.voice_sessions.schedule_preheat(
+                delay=Config.mic_preheat_delay,
+                timeout=Config.mic_open_timeout,
+            )
+
         # 2. UI 提示
         TipsDisplay.show_mic_tips()
 

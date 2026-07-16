@@ -25,6 +25,7 @@ from core.ui import (
     ToastMessageManager,
     ToastMessageManager,
     enable_min_to_tray,
+    notify_tray,
     stop_tray,
 )
 
@@ -40,6 +41,7 @@ __all__ = [
     'ToastMessage',
     'ToastMessageManager',
     'enable_min_to_tray',
+    'notify_tray',
     'stop_tray',
     'on_add_hotword',
     'on_edit_context',
