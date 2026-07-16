@@ -69,6 +69,7 @@ class AudioRecorder:
         if not self._ws_manager.is_connected:
             if message.is_final:
                 self.state.pop_audio_file(message.task_id)
+                self.app.island.error(message.task_id, '服务端未连接')
                 console.print('    服务端未连接，无法发送\n')
                 logger.warning("服务端未连接，无法发送音频数据")
             return
@@ -77,6 +78,7 @@ class AudioRecorder:
         success = await self._ws_manager.send(message)
         if not success and message.is_final:
             self.state.pop_audio_file(message.task_id)
+            self.app.island.error(message.task_id, '音频发送失败')
             # 具体错误日志由 WebSocketManager 记录
     
     async def record_and_send(self) -> None:
@@ -88,7 +90,7 @@ class AudioRecorder:
         """
         try:
             # 生成唯一任务 ID
-            self.task_id = str(uuid.uuid1())
+            self.task_id = self.task_id or str(uuid.uuid1())
             logger.debug(f"创建录音任务，任务ID: {self.task_id}")
             
             self._start_time = 0.0
@@ -202,6 +204,7 @@ class AudioRecorder:
                     
         except Exception as e:
             logger.error(f"录音任务错误: {e}", exc_info=True)
+            self.app.island.error(self.task_id, str(e))
     
     def get_file_manager(self) -> Optional[AudioFileManager]:
         """获取当前的文件管理器"""

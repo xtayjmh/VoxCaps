@@ -75,6 +75,8 @@ hiddenimports += [
     'PIL',           # Pillow 用于托盘图标
     'PIL.Image',
     'pystray',       # 托盘图标库
+    'tkinter',       # 客户端内置动态状态岛
+    'tkinter.font',
 ]
 
 # # 对所有模块用 .py 源码而非 .pyc（猴子补丁 _get_module_collection_mode）

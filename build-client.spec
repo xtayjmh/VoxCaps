@@ -75,6 +75,8 @@ hiddenimports += [
     'PIL',           # Pillow 用于托盘图标
     'PIL.Image',
     'pystray',       # 托盘图标库
+    'tkinter',       # 客户端内置动态状态岛
+    'tkinter.font',
     'rich._unicode_data.unicode17-0-0',
 ]
 

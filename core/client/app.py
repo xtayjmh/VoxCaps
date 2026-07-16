@@ -32,6 +32,7 @@ from .hotword.manager import HotwordManager
 from .llm.llm_handler import LLMHandler
 from .output.text_output import TextOutput
 from .diary.diary_writer import DiaryWriter
+from .island import DynamicIslandController
 from core.tools.empty_working_set import empty_current_working_set
 from platform import system
 
@@ -68,6 +69,16 @@ class CapsWriterClient:
         self.output = TextOutput()
         self.diary = DiaryWriter(base_path=self.base_dir)
 
+        # 客户端内置动态状态岛；失败时静默退化，不影响语音输入主流程。
+        self.island = DynamicIslandController(
+            enabled=getattr(Config, 'dynamic_island_enabled', True),
+            width=getattr(Config, 'dynamic_island_width', 138),
+            height=getattr(Config, 'dynamic_island_height', 34),
+            bottom_margin=getattr(Config, 'dynamic_island_bottom_margin', 42),
+            hold_delay_ms=getattr(Config, 'dynamic_island_hold_delay_ms', 180),
+        )
+        self.island.start()
+
         # 初始化各管理器
         self.ws = WebSocketManager(self)
         self.tray = TrayManager(self)
@@ -90,6 +101,7 @@ class CapsWriterClient:
         self.udp.stop()
         self.shortcut.stop()
         self.stream.stop()
+        self.island.stop()
 
         # 2. 托盘资源
         self.tray.stop()
@@ -137,5 +149,3 @@ class CapsWriterClient:
             self.loop.run_until_complete(runner.run())
         except RuntimeError:
             ...
-
-

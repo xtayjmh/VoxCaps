@@ -1,0 +1,52 @@
+[project]
+name = "capswriter-offline"
+version = "2.6.0"
+description = "Offline speech input with an integrated dynamic status island"
+requires-python = ">=3.10,<3.14"
+
+[tool.uv]
+package = false
+
+[dependency-groups]
+client = [
+    "colorama",
+    "httpx",
+    "keyboard",
+    "markdown",
+    "numba",
+    "numpy",
+    "ollama",
+    "openai",
+    "pillow",
+    "pynput",
+    "pyclip",
+    "pypinyin",
+    "pystray",
+    "rapidfuzz",
+    "rich",
+    "sounddevice",
+    "srt",
+    "tkhtmlview",
+    "typer",
+    "watchdog",
+    "websockets",
+]
+server = [
+    "gguf",
+    "markdown",
+    "numpy",
+    "onnxruntime-directml",
+    "pillow",
+    "pypinyin",
+    "pystray",
+    "rich",
+    "sherpa-onnx",
+    "tkhtmlview",
+    "watchdog",
+    "websockets",
+]
+build = [
+    { include-group = "client" },
+    { include-group = "server" },
+    "pyinstaller>=6.0",
+]

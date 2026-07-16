@@ -8,6 +8,7 @@
 from __future__ import annotations
 import asyncio
 import time
+import uuid
 from threading import Event
 from typing import TYPE_CHECKING, Optional
 
@@ -44,6 +45,7 @@ class ShortcutTask:
 
         # 任务状态
         self.task: Optional[asyncio.Future] = None
+        self.pipeline_task_id: Optional[str] = None
         self.recording_start_time: float = 0.0
         self.is_recording: bool = False
 
@@ -76,7 +78,9 @@ class ShortcutTask:
 
         # 记录开始时间
         self.recording_start_time = time.time()
+        self.pipeline_task_id = str(uuid.uuid1())
         self.is_recording = True
+        self.app.island.recording(self.pipeline_task_id)
 
         # 将开始标志放入队列
         asyncio.run_coroutine_threadsafe(
@@ -92,6 +96,7 @@ class ShortcutTask:
 
         # 启动识别任务
         recorder = self._get_recorder()
+        recorder.task_id = self.pipeline_task_id
         self.task = asyncio.run_coroutine_threadsafe(
             recorder.record_and_send(),
             self.app.loop,
@@ -104,6 +109,7 @@ class ShortcutTask:
         self.is_recording = False
         self.state.stop_recording()
         self._status.stop()
+        self.app.island.cancelled(self.pipeline_task_id)
 
         self.task.cancel()
         self.task = None
@@ -115,6 +121,7 @@ class ShortcutTask:
         self.is_recording = False
         self.state.stop_recording()
         self._status.stop()
+        self.app.island.recognizing(self.pipeline_task_id)
 
         asyncio.run_coroutine_threadsafe(
             self.state.queue_in.put({

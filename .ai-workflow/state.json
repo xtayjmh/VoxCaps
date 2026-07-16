@@ -1,0 +1,29 @@
+{
+  "taskId": "capswriter-dynamic-island",
+  "riskLevel": "auto",
+  "riskLevelFinal": "complex",
+  "riskOverride": null,
+  "riskReasons": [
+    "跨越快捷键、录音、WebSocket 识别、文本输出和 UI 生命周期",
+    "同时修改完整包与纯客户端包构建流程"
+  ],
+  "stage": "DONE",
+  "planReview": {
+    "attempt": 1,
+    "result": "APPROVED",
+    "model": "current-model-self-review",
+    "reasoningEffort": "high"
+  },
+  "diffReview": {
+    "attempt": 1,
+    "result": "APPROVED",
+    "model": "current-model-self-review",
+    "reasoningEffort": "high"
+  },
+  "maxPlanReviewAttempts": 3,
+  "maxDiffReviewAttempts": 3,
+  "toolFallbacks": [
+    "独立 reviewer 不可用，计划评审降级为主会话隔离自审"
+  ],
+  "status": "complete"
+}

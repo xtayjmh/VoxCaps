@@ -1,0 +1,26 @@
+# CapsWriter 客户端动态状态岛交付报告
+
+## 结果
+
+客户端启动时会自动创建动态状态岛，退出时自动关闭。运行时没有额外命令、PowerShell 指示器或外部进程。
+
+## 已实现
+
+- 录音青蓝波形；
+- 识别中紫色光点；
+- 文字成功输出后的绿色送达流光；
+- 网络、发送和录音异常的红色状态；
+- 180ms 按住延迟，避免短按 CapsLock 切换大小写时闪现；
+- 任务 ID 隔离，迟到结果不覆盖新任务的界面状态；
+- 完整包和纯客户端包的 uv 锁定构建；
+- GitHub Actions 双包产物构建。
+
+## 验证
+
+- `python -m compileall -q core tests start_client.py zip_release.py`
+- `python -m unittest discover -s tests -v`：4/4 通过
+- 客户端主类及状态岛控制器导入通过
+- `build.spec` 和 `build-client.spec` 均构建成功
+- 两个 ZIP 均生成成功，并包含 Tk 运行时和客户端新增模块
+
+本地验证产物：完整包约 72.2 MB，纯客户端包约 46.7 MB。发布产物本身被 `.gitignore` 排除，不提交到源码分支。

@@ -10,27 +10,9 @@
 """
 
 import os
-import subprocess
+import zipfile
 from pathlib import Path
 from datetime import datetime
-
-
-def find_7zip():
-    """查找 7zip 可执行文件"""
-    possible_paths = [
-        r"C:\Program Files\7-Zip\7z.exe",
-        r"C:\Program Files (x86)\7-Zip\7z.exe",
-    ]
-
-    # 从 PATH 环境变量查找
-    for path in os.environ.get("PATH", "").split(os.pathsep):
-        possible_paths.append(os.path.join(path, "7z.exe"))
-
-    for path in possible_paths:
-        if os.path.exists(path):
-            return path
-
-    return None
 
 
 def should_include_file(file_path, is_client_only=False):
@@ -111,16 +93,8 @@ def create_file_list(dist_folder, output_file='file_list.txt', is_client_only=Fa
     return files, list_file
 
 
-def package_with_7zip(source_dir, output_zip, file_list_file):
-    """使用 7zip 打包目录"""
-
-    seven_zip = find_7zip()
-    if not seven_zip:
-        raise FileNotFoundError(
-            "找不到 7zip。请确认已安装 7-Zip。\n"
-            "下载地址: https://www.7-zip.org/"
-        )
-
+def package_with_zip(source_dir, output_zip, file_list_file):
+    """使用 Python 标准库生成 ZIP，无需额外安装 7-Zip。"""
     source_path = Path(source_dir)
     if not source_path.exists():
         raise FileNotFoundError(f"源目录不存在: {source_dir}")
@@ -129,68 +103,29 @@ def package_with_7zip(source_dir, output_zip, file_list_file):
     output_path = Path(output_zip)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # 文件列表处理
-    # 文件列表在当前工作目录，需要从 dist 目录访问
     dist_dir = source_path.parent
-    list_file_abs = Path(file_list_file).absolute()
-    list_file_rel_to_dist = os.path.relpath(list_file_abs, dist_dir)
-
-    # 构建 7zip 命令
-    # 使用 -tzip 创建 ZIP 格式（兼容性好）
-    # 使用 -mx9 最大压缩
-    # 使用 @file_list.txt 从文件读取要打包的文件列表
-    cmd = [
-        seven_zip,
-        'a',                      # 添加到压缩包
-        '-tzip',                  # ZIP 格式
-        '-mx9',                   # 最大压缩级别
-        str(output_path.absolute()),  # 输出文件（绝对路径）
-        f'@{list_file_rel_to_dist}',  # 从文件读取列表（相对于 dist 目录）
-    ]
-
-    # 读取文件列表统计信息
-    with open(file_list_file, 'r', encoding='utf-8') as f:
-        files_count = len(f.readlines())
+    relative_files = Path(file_list_file).read_text(encoding='utf-8').splitlines()
+    files_count = len(relative_files)
 
     print(f"\n正在打包: {source_path.name}")
     print(f"输出文件: {output_zip}")
     print(f"打包文件数: {files_count}")
     print(f"工作目录: {dist_dir.absolute()}")
 
-    # 执行压缩（从 dist 目录运行）
-    result = subprocess.run(
-        cmd,
-        cwd=str(dist_dir),  # 从 dist 目录运行
-        capture_output=True,
-        text=True,
-        encoding='utf-8',
-        errors='ignore'
-    )
+    if output_path.exists():
+        output_path.unlink()
+    with zipfile.ZipFile(
+        output_path,
+        mode='w',
+        compression=zipfile.ZIP_DEFLATED,
+        compresslevel=9,
+    ) as archive:
+        for relative_file in relative_files:
+            source_file = dist_dir / relative_file
+            archive.write(source_file, arcname=relative_file)
 
-    if result.returncode != 0:
-        print(f"\n错误: 7zip 执行失败")
-        print(f"STDOUT: {result.stdout}")
-        print(f"STDERR: {result.stderr}")
-        raise subprocess.CalledProcessError(result.returncode, cmd)
-
-    print("\n✅ 打包成功！")
-
-    # 显示压缩包信息
-    info_result = subprocess.run(
-        [seven_zip, 'l', str(output_path.absolute())],
-        capture_output=True,
-        text=True,
-        encoding='utf-8',
-        errors='ignore'
-    )
-
-    if info_result.returncode == 0:
-        # 解析文件数量和大小
-        lines = info_result.stdout.split('\n')
-        for line in lines:
-            if 'files' in line.lower() or '文件夹' in line or '文件' in line:
-                print(f"\n压缩包信息: {line.strip()}")
-                break
+    print("\n打包成功！")
+    print(f"压缩包信息: {files_count} 个文件")
 
 
 def main():
@@ -201,7 +136,7 @@ def main():
     if not dist_dir.exists():
         print(f"错误: dist 目录不存在")
         print(f"请先运行 PyInstaller 构建: pyinstaller build.spec")
-        return
+        return 1
 
     print("=" * 60)
     print("CapsWriter-Offline 打包脚本")
@@ -239,7 +174,7 @@ def main():
         print(f"请先运行 PyInstaller 构建:")
         print(f"  pyinstaller build.spec")
         print(f"  pyinstaller build-client.spec")
-        return
+        return 1
 
     print(f"\n找到 {len(packages)} 个待打包的构建产物")
 
@@ -265,7 +200,7 @@ def main():
             print(f"文件列表: {list_file}")
 
             # 打包
-            package_with_7zip(
+            package_with_zip(
                 pkg['source'],
                 pkg['output'],
                 list_file
@@ -296,6 +231,8 @@ def main():
             size_mb = file.stat().st_size / (1024 * 1024)
             print(f"  {file.name} ({size_mb:.1f} MB)")
 
+    return 0 if success_count == len(packages) else 1
+
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

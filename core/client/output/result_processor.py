@@ -166,12 +166,14 @@ class ResultProcessor:
 
             # 2. 消息接收循环
             while not self._exit_event.is_set():
+                message = None
                 try:
                     message = await self.ws.receive()
                     if message is None: break
                     await self._handle_message(message)
                 except Exception as e:
                     logger.debug(f"连接异常中断: {e}")
+                    self.app.island.error(getattr(message, 'task_id', None), str(e))
                     break
 
             console.print(f'[bold red]已断开服务端连接[/bold red]\n')
@@ -200,6 +202,9 @@ class ResultProcessor:
         # 如果非最终结果，继续等待
         if not message.is_final:
             return
+
+        # 与录音结束事件使用同一任务 ID，确保迟到结果不会覆盖新任务。
+        self.app.island.recognizing(message.task_id)
 
         # 繁体转换
         if Config.traditional_convert:
@@ -280,6 +285,9 @@ class ResultProcessor:
             await self.output.output(text, paste=paste)
             self.state.set_output_text(text)
             broadcast_output_udp(text)
+
+        # 只有文字输出流程成功返回后才播放送达流光。
+        self.app.island.delivered(message.task_id)
 
         # 保存录音与写入 md 文件
         file_audio = None
