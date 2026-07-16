@@ -26,6 +26,18 @@ DynamicIslandView = sys.modules[f'{PACKAGE_NAME}.view'].DynamicIslandView
 
 
 class DynamicIslandGeometryTests(unittest.TestCase):
+    def test_preparing_uses_amber_wave_and_recording_uses_cyan_blue(self):
+        state_module = sys.modules[f'{PACKAGE_NAME}.state_machine']
+
+        self.assertEqual(
+            DynamicIslandView._wave_colors(state_module.IslandStage.PREPARING),
+            ('#ffb43b', '#ff7a45'),
+        )
+        self.assertEqual(
+            DynamicIslandView._wave_colors(state_module.IslandStage.RECORDING),
+            ('#12d4e8', '#4b79ff'),
+        )
+
     def test_default_size_stays_above_bottom_taskbar(self):
         work_area = (0, 0, 1920, 1040)
 

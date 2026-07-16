@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, replace
 from enum import Enum
 from time import monotonic
@@ -10,10 +11,9 @@ from typing import Optional
 
 class IslandStage(str, Enum):
     IDLE = 'idle'
+    PREPARING = 'preparing'
     RECORDING = 'recording'
     RECOGNIZING = 'recognizing'
-    DELIVERED = 'delivered'
-    ERROR = 'error'
     STOP = 'stop'
 
 
@@ -43,6 +43,8 @@ class IslandStateMachine:
 
     def __init__(self) -> None:
         self.state = IslandState(changed_at=monotonic())
+        self._retired_order: deque[str] = deque()
+        self._retired_ids: set[str] = set()
 
     def apply(self, event: IslandEvent) -> bool:
         current = self.state
@@ -57,9 +59,17 @@ class IslandStateMachine:
             )
             return True
 
-        if event.stage is IslandStage.RECORDING:
+        if current.revision and event.created_at < current.changed_at:
+            return False
+
+        if event.task_id and event.task_id in self._retired_ids:
+            return False
+
+        if event.stage in (IslandStage.PREPARING, IslandStage.RECORDING):
             if not event.task_id:
                 return False
+            if current.task_id and current.task_id != event.task_id:
+                self._retire(current.task_id)
             self.state = IslandState(
                 stage=event.stage,
                 task_id=event.task_id,
@@ -69,12 +79,12 @@ class IslandStateMachine:
             )
             return True
 
-        # 无 task_id 的错误只允许作用于当前活动任务。
         event_task_id = event.task_id or current.task_id
         if current.task_id and event_task_id != current.task_id:
             return False
 
         if event.stage is IslandStage.IDLE:
+            self._retire(event_task_id)
             self.state = IslandState(
                 stage=IslandStage.IDLE,
                 changed_at=event.created_at,
@@ -93,3 +103,12 @@ class IslandStateMachine:
             revision=current.revision + 1,
         )
         return True
+
+    def _retire(self, task_id: Optional[str]) -> None:
+        if not task_id or task_id in self._retired_ids:
+            return
+        if len(self._retired_order) >= 128:
+            expired = self._retired_order.popleft()
+            self._retired_ids.discard(expired)
+        self._retired_order.append(task_id)
+        self._retired_ids.add(task_id)

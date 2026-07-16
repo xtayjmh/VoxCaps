@@ -75,7 +75,6 @@ class CapsWriterClient:
             width=getattr(Config, 'dynamic_island_width', 276),
             height=getattr(Config, 'dynamic_island_height', 68),
             bottom_margin=getattr(Config, 'dynamic_island_bottom_margin', 18),
-            hold_delay_ms=getattr(Config, 'dynamic_island_hold_delay_ms', 180),
         )
         self.island.start()
 

@@ -68,7 +68,6 @@ class ClientConfig:
     dynamic_island_width = 276
     dynamic_island_height = 68
     dynamic_island_bottom_margin = 18  # 距 Windows 可用工作区底边，不会压进任务栏
-    dynamic_island_hold_delay_ms = 180  # 短按 CapsLock 不显示，长按超过此时间才显示
 
     # 日志配置
     log_level = 'DEBUG'          # 日志级别：'DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'

@@ -286,7 +286,7 @@ class ResultProcessor:
             self.state.set_output_text(text)
             broadcast_output_udp(text)
 
-        # 只有文字输出流程成功返回后才播放送达流光。
+        # 只有文字输出流程成功返回后才隐藏识别态。
         self.app.island.delivered(message.task_id)
 
         # 保存录音与写入 md 文件

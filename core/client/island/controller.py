@@ -20,13 +20,11 @@ class DynamicIslandController:
         width: int = 276,
         height: int = 68,
         bottom_margin: int = 18,
-        hold_delay_ms: int = 180,
     ) -> None:
         self.enabled = enabled
         self.width = max(96, int(width))
         self.height = max(26, int(height))
         self.bottom_margin = max(0, int(bottom_margin))
-        self.hold_delay_ms = max(0, int(hold_delay_ms))
         self._events: Queue[IslandEvent] = Queue()
         self._stop_event = Event()
         self._thread: Optional[Thread] = None
@@ -59,17 +57,23 @@ class DynamicIslandController:
     def recording(self, task_id: str) -> None:
         self._publish(IslandStage.RECORDING, task_id)
 
+    def preparing(self, task_id: str) -> None:
+        self._publish(IslandStage.PREPARING, task_id)
+
     def cancelled(self, task_id: Optional[str]) -> None:
-        self._publish(IslandStage.IDLE, task_id)
+        if task_id:
+            self._publish(IslandStage.IDLE, task_id)
 
     def recognizing(self, task_id: Optional[str]) -> None:
         self._publish(IslandStage.RECOGNIZING, task_id)
 
     def delivered(self, task_id: Optional[str]) -> None:
-        self._publish(IslandStage.DELIVERED, task_id)
+        if task_id:
+            self._publish(IslandStage.IDLE, task_id)
 
     def error(self, task_id: Optional[str], message: str = '') -> None:
-        self._publish(IslandStage.ERROR, task_id, message)
+        if task_id:
+            self._publish(IslandStage.IDLE, task_id)
 
     def _publish(
         self,
@@ -91,7 +95,6 @@ class DynamicIslandController:
                 width=self.width,
                 height=self.height,
                 bottom_margin=self.bottom_margin,
-                hold_delay_ms=self.hold_delay_ms,
             ).run()
         except Exception as exc:
             # UI 永远不能阻断录音和识别主流程。

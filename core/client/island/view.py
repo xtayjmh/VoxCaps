@@ -23,21 +23,17 @@ class DynamicIslandView:
         width: int,
         height: int,
         bottom_margin: int,
-        hold_delay_ms: int,
     ) -> None:
         self.events = events
         self.stop_event = stop_event
         self.width = width
         self.height = height
         self.bottom_margin = bottom_margin
-        self.hold_delay = hold_delay_ms / 1000.0
         self.machine = IslandStateMachine()
         self.root: tk.Tk | None = None
         self.canvas: tk.Canvas | None = None
         self.visible = False
         self.phase = 0.0
-        self.show_at = 0.0
-        self.hide_at = 0.0
 
     def run(self) -> None:
         root = tk.Tk()
@@ -85,15 +81,13 @@ class DynamicIslandView:
             return
 
         now = monotonic()
-        self._drain_events(now)
+        self._drain_events()
         state = self.machine.state
 
-        if state.stage is IslandStage.RECORDING and now >= self.show_at:
-            self._show()
-        elif state.stage in (
+        if state.stage in (
+            IslandStage.PREPARING,
+            IslandStage.RECORDING,
             IslandStage.RECOGNIZING,
-            IslandStage.DELIVERED,
-            IslandStage.ERROR,
         ):
             self._show()
         elif state.stage is IslandStage.IDLE:
@@ -101,37 +95,19 @@ class DynamicIslandView:
 
         if self.visible:
             self.phase += 0.19
-            self._draw(state.stage, now)
-
-        if self.hide_at and now >= self.hide_at:
-            self.machine.apply(IslandEvent(IslandStage.IDLE, state.task_id))
-            self.hide_at = 0.0
-            self._hide()
+            self._draw(state.stage)
 
         if self.root:
             self.root.after(self.FRAME_MS, self._tick)
 
-    def _drain_events(self, now: float) -> None:
+    def _drain_events(self) -> None:
         while True:
             try:
                 event = self.events.get_nowait()
             except Empty:
                 return
 
-            if not self.machine.apply(event):
-                continue
-            if event.stage is IslandStage.RECORDING:
-                self.show_at = now + self.hold_delay
-                self.hide_at = 0.0
-            elif event.stage is IslandStage.RECOGNIZING:
-                self.hide_at = 0.0
-            elif event.stage is IslandStage.DELIVERED:
-                self.hide_at = now + 0.72
-            elif event.stage is IslandStage.ERROR:
-                self.hide_at = now + 1.15
-            elif event.stage is IslandStage.IDLE:
-                self.show_at = 0.0
-                self.hide_at = 0.0
+            self.machine.apply(event)
 
     def _show(self) -> None:
         if self.visible or not self.root:
@@ -147,29 +123,28 @@ class DynamicIslandView:
         self.visible = False
         self.root.withdraw()
 
-    def _draw(self, stage: IslandStage, now: float) -> None:
+    def _draw(self, stage: IslandStage) -> None:
         canvas = self.canvas
         if not canvas:
             return
         canvas.delete('all')
         border = '#4f535b'
         fill = '#050505'
-        if stage is IslandStage.ERROR:
-            border = '#7d2934'
-            fill = '#15080b'
-        elif stage is IslandStage.DELIVERED:
-            border = '#34e6bd'
-            fill = '#031310'
         self._rounded_rect(0, 0, self.width - 1, self.height - 1, fill, border)
 
-        if stage is IslandStage.RECORDING:
-            self._draw_wave('#12d4e8', '#4b79ff')
+        colors = self._wave_colors(stage)
+        if colors:
+            self._draw_wave(*colors)
         elif stage is IslandStage.RECOGNIZING:
             self._draw_recognizing()
-        elif stage is IslandStage.DELIVERED:
-            self._draw_delivered(now)
-        elif stage is IslandStage.ERROR:
-            self._draw_error()
+
+    @staticmethod
+    def _wave_colors(stage: IslandStage) -> tuple[str, str] | None:
+        if stage is IslandStage.PREPARING:
+            return '#ffb43b', '#ff7a45'
+        if stage is IslandStage.RECORDING:
+            return '#12d4e8', '#4b79ff'
+        return None
 
     @staticmethod
     def _get_work_area(screen_width: int, screen_height: int) -> tuple[int, int, int, int]:
@@ -294,58 +269,6 @@ class DynamicIslandView:
                 center_y + radius,
                 fill=color,
                 outline='',
-            )
-
-    def _draw_delivered(self, now: float) -> None:
-        canvas = self.canvas
-        if not canvas:
-            return
-        elapsed = max(0.0, now - self.machine.state.changed_at)
-        progress = min(1.0, elapsed / 0.58)
-        left = self.width * 0.15
-        right = self.width * 0.85
-        head = left + (right - left) * progress
-        scale = self.height / 34
-        canvas.create_line(
-            left,
-            self.height / 2,
-            right,
-            self.height / 2,
-            fill='#17483f',
-            width=max(2, round(2 * scale)),
-        )
-        canvas.create_line(
-            max(left, head - 28 * scale),
-            self.height / 2,
-            head,
-            self.height / 2,
-            fill='#45f6cb',
-            width=max(3, round(3 * scale)),
-        )
-
-    def _draw_error(self) -> None:
-        canvas = self.canvas
-        if not canvas:
-            return
-        # 使用柔和的红橙脉冲波表示异常，避免突兀的叹号图标。
-        count = 11
-        center_x = self.width / 2
-        center_y = self.height / 2
-        gap = max(6, self.width * 0.035)
-        for index in range(count):
-            distance = abs(index - (count - 1) / 2) / ((count - 1) / 2)
-            pulse = (math.sin(self.phase * 1.2 - index * 0.7) + 1) / 2
-            bar_height = 5 + (self.height * 0.34) * (1 - distance * 0.55) * pulse
-            x = center_x + (index - (count - 1) / 2) * gap
-            color = self._mix('#ff6677', '#ffad66', index / (count - 1))
-            canvas.create_line(
-                x,
-                center_y - bar_height / 2,
-                x,
-                center_y + bar_height / 2,
-                fill=color,
-                width=max(2, round(self.height / 17)),
-                capstyle=tk.ROUND,
             )
 
     @staticmethod

@@ -73,6 +73,17 @@ class ShortcutTask:
             self._recorder_class = AudioRecorder
         return self._recorder_class(self.app)
 
+    def prepare(self) -> None:
+        """长按已确认但麦克风尚未就绪时进入准备态。"""
+        self.pipeline_task_id = str(uuid.uuid1())
+        self.app.island.preparing(self.pipeline_task_id)
+
+    def cancel_preparing(self) -> None:
+        """取消尚未开始录音的准备态。"""
+        if self.pipeline_task_id:
+            self.app.island.cancelled(self.pipeline_task_id)
+            self.pipeline_task_id = None
+
     def launch(self, *, start_time: float | None = None, initial_audio: list[dict] | None = None) -> None:
         """启动录音任务"""
         logger.info(f"[{self.shortcut.key}] 触发：开始录音")
@@ -85,7 +96,7 @@ class ShortcutTask:
 
         # 记录开始时间
         self.recording_start_time = start_time if start_time is not None else time.time()
-        self.pipeline_task_id = str(uuid.uuid1())
+        self.pipeline_task_id = self.pipeline_task_id or str(uuid.uuid1())
         self.is_recording = True
         self.app.island.recording(self.pipeline_task_id)
 
@@ -121,7 +132,9 @@ class ShortcutTask:
         self.is_recording = False
         self.state.stop_recording()
         self._status.stop()
-        self.app.island.cancelled(self.pipeline_task_id)
+        task_id = self.pipeline_task_id
+        self.app.island.cancelled(task_id)
+        self.pipeline_task_id = None
 
         if self.task is not None:
             self.task.cancel()
@@ -138,7 +151,11 @@ class ShortcutTask:
         self.is_recording = False
         self.state.stop_recording()
         self._status.stop()
-        self.app.island.recognizing(self.pipeline_task_id)
+        task_id = self.pipeline_task_id
+        self.app.island.recognizing(task_id)
+        # Recorder 已持有自己的 task_id；释放 ShortcutTask 字段，确保下一次
+        # direct/click launch 不会复用旧任务身份。
+        self.pipeline_task_id = None
 
         asyncio.run_coroutine_threadsafe(
             self.state.queue_in.put({

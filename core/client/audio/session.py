@@ -36,6 +36,7 @@ class _Session:
     open_failed: bool = False
     confirmed: bool = False
     recording: bool = False
+    preparing: bool = False
 
 
 class VoiceInputSessionCoordinator:
@@ -170,6 +171,7 @@ class VoiceInputSessionCoordinator:
             elapsed = self.clock() - session.pressed_at
             if not session.confirmed and elapsed > session.task.threshold:
                 session.confirmed = True
+                self._prepare_session(session)
                 if session.opened:
                     self._start_recording(session)
 
@@ -190,6 +192,8 @@ class VoiceInputSessionCoordinator:
             else:
                 if not session.confirmed:
                     self.restore_short_press(key_name, session.task)
+                else:
+                    self._cancel_preparing(session)
                 if session.opened:
                     self.executor.submit(self.stream.discard_candidate)
 
@@ -219,6 +223,8 @@ class VoiceInputSessionCoordinator:
 
         if session is not None and session.recording:
             session.task.cancel()
+        elif session is not None and session.confirmed:
+            self._cancel_preparing(session)
         # 不在退出线程中等待 PortAudio。串行 executor 会先处理已开始的打开
         # 调用，再执行 stop；若驱动永久卡死，守护 worker 也不会拖住进程退出。
         try:
@@ -261,6 +267,7 @@ class VoiceInputSessionCoordinator:
                 )
                 return
             session.confirmed = True
+            self._prepare_session(session)
             if session.open_failed:
                 self._fail_session(session)
             elif session.opened:
@@ -270,7 +277,9 @@ class VoiceInputSessionCoordinator:
         with self._lock:
             if self._session is not session or session.opened:
                 return
-            session.confirmed = True
+            if not session.confirmed:
+                session.confirmed = True
+                self._prepare_session(session)
             self._fail_session(session)
 
     def _fail_session(self, session: _Session) -> None:
@@ -282,6 +291,7 @@ class VoiceInputSessionCoordinator:
             session.open_timeout_timer.cancel()
         if session.open_future is not None:
             session.open_future.cancel()
+        self._cancel_preparing(session)
         self.notify_microphone_error('麦克风不可用，请检查 Windows 麦克风权限或安全软件设置。')
         self._session = None
 
@@ -295,3 +305,21 @@ class VoiceInputSessionCoordinator:
             )
         )
         session.recording = bool(committed)
+        if committed:
+            session.preparing = False
+        else:
+            self._cancel_preparing(session)
+
+    @staticmethod
+    def _prepare_session(session: _Session) -> None:
+        if session.preparing:
+            return
+        session.task.prepare()
+        session.preparing = True
+
+    @staticmethod
+    def _cancel_preparing(session: _Session) -> None:
+        if not session.preparing:
+            return
+        session.task.cancel_preparing()
+        session.preparing = False

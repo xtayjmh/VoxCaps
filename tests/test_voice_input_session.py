@@ -87,6 +87,14 @@ class _FakeTask:
         self.launches = []
         self.finish_calls = 0
         self.cancel_calls = 0
+        self.prepare_calls = 0
+        self.cancel_prepare_calls = 0
+
+    def prepare(self):
+        self.prepare_calls += 1
+
+    def cancel_preparing(self):
+        self.cancel_prepare_calls += 1
 
     def launch(self, *, start_time=None, initial_audio=None):
         self.launches.append((start_time, initial_audio))
@@ -361,6 +369,8 @@ class VoiceInputSessionCoordinatorTests(unittest.TestCase):
         self.assertEqual(len(notifications), 1)
         self.assertEqual(restored, [])
         self.assertEqual(task.launches, [])
+        self.assertEqual(task.prepare_calls, 1)
+        self.assertEqual(task.cancel_prepare_calls, 1)
         self.assertTrue(coordinator.press('caps_lock', _FakeTask()))
         executor.run_next()
         self.assertTrue(stream.is_open)
@@ -412,6 +422,8 @@ class VoiceInputSessionCoordinatorTests(unittest.TestCase):
         self.assertEqual(len(notifications), 1)
         self.assertEqual(restored, [])
         self.assertFalse(stream.is_open)
+        self.assertEqual(task.prepare_calls, 1)
+        self.assertEqual(task.cancel_prepare_calls, 1)
 
         executor.run_next()
 
@@ -442,6 +454,31 @@ class VoiceInputSessionCoordinatorTests(unittest.TestCase):
         self.assertTrue(scheduler.calls[0].cancelled)
         self.assertTrue(coordinator.press('caps_lock', _FakeTask()))
 
+    def test_confirmed_hold_shows_preparing_until_microphone_opens(self):
+        executor = _ManualExecutor()
+        scheduler = _ManualScheduler()
+        stream = _FakeStream()
+        task = _FakeTask()
+        now = [10.0]
+        coordinator = VoiceInputSessionCoordinator(
+            stream=stream,
+            executor=executor,
+            scheduler=scheduler,
+            restore_short_press=lambda _key, _task: None,
+            clock=lambda: now[0],
+        )
+
+        coordinator.press('caps_lock', task)
+        now[0] = 10.251
+        scheduler.run_next()
+
+        self.assertEqual(task.prepare_calls, 1)
+        self.assertEqual(task.launches, [])
+
+        executor.run_next()
+
+        self.assertEqual(len(task.launches), 1)
+
     def test_long_press_commits_candidate_then_finishes_and_closes_stream(self):
         executor = _ManualExecutor()
         scheduler = _ManualScheduler()
@@ -463,6 +500,7 @@ class VoiceInputSessionCoordinatorTests(unittest.TestCase):
         scheduler.run_next()
 
         self.assertEqual(task.launches, [(100.0, stream.candidate_frames)])
+        self.assertEqual(task.prepare_calls, 1)
 
         coordinator.release('caps_lock')
         executor.run_next()
@@ -545,6 +583,7 @@ class VoiceInputSessionCoordinatorTests(unittest.TestCase):
 
         self.assertEqual(task.launches, [])
         self.assertEqual(task.finish_calls, 0)
+        self.assertEqual(task.cancel_prepare_calls, 1)
         self.assertGreaterEqual(stream.discard_calls, 1)
 
     def test_exactly_250_milliseconds_is_still_a_short_press(self):
