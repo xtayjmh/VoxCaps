@@ -19,9 +19,9 @@
 
 ```python
 dynamic_island_enabled = True       # 是否启用
-dynamic_island_width = 138          # 宽度（最小 96）
-dynamic_island_height = 34          # 高度（最小 26）
-dynamic_island_bottom_margin = 42   # 距屏幕底边的距离
+dynamic_island_width = 276          # 宽度（最小 96）
+dynamic_island_height = 68          # 高度（最小 26）
+dynamic_island_bottom_margin = 18   # 距 Windows 可用工作区底边的距离
 dynamic_island_hold_delay_ms = 180  # 按住多久后显示
 ```
 

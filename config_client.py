@@ -65,9 +65,9 @@ class ClientConfig:
 
     # 客户端内置动态状态岛：随 start_client 自动启动和退出，无需辅助程序
     dynamic_island_enabled = True
-    dynamic_island_width = 138
-    dynamic_island_height = 34
-    dynamic_island_bottom_margin = 42
+    dynamic_island_width = 276
+    dynamic_island_height = 68
+    dynamic_island_bottom_margin = 18  # 距 Windows 可用工作区底边，不会压进任务栏
     dynamic_island_hold_delay_ms = 180  # 短按 CapsLock 不显示，长按超过此时间才显示
 
     # 日志配置

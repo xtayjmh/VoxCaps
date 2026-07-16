@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import ctypes
 import tkinter as tk
 from queue import Empty, Queue
 from threading import Event
@@ -63,8 +64,16 @@ class DynamicIslandView:
         self.canvas = canvas
 
         root.update_idletasks()
-        x = max(0, (root.winfo_screenwidth() - self.width) // 2)
-        y = max(0, root.winfo_screenheight() - self.height - self.bottom_margin)
+        left, top, right, bottom = self._get_work_area(
+            root.winfo_screenwidth(),
+            root.winfo_screenheight(),
+        )
+        x, y = self._calculate_position(
+            (left, top, right, bottom),
+            self.width,
+            self.height,
+            self.bottom_margin,
+        )
         root.geometry(f'{self.width}x{self.height}+{x}+{y}')
         root.after(self.FRAME_MS, self._tick)
         root.mainloop()
@@ -146,8 +155,8 @@ class DynamicIslandView:
         border = '#4f535b'
         fill = '#050505'
         if stage is IslandStage.ERROR:
-            border = '#ff5263'
-            fill = '#170609'
+            border = '#7d2934'
+            fill = '#15080b'
         elif stage is IslandStage.DELIVERED:
             border = '#34e6bd'
             fill = '#031310'
@@ -162,11 +171,50 @@ class DynamicIslandView:
         elif stage is IslandStage.ERROR:
             self._draw_error()
 
+    @staticmethod
+    def _get_work_area(screen_width: int, screen_height: int) -> tuple[int, int, int, int]:
+        """返回 Windows 可用工作区，排除任务栏占用区域。"""
+        if hasattr(ctypes, 'windll'):
+            class Rect(ctypes.Structure):
+                _fields_ = [
+                    ('left', ctypes.c_long),
+                    ('top', ctypes.c_long),
+                    ('right', ctypes.c_long),
+                    ('bottom', ctypes.c_long),
+                ]
+
+            rect = Rect()
+            try:
+                if ctypes.windll.user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0):
+                    return rect.left, rect.top, rect.right, rect.bottom
+            except (AttributeError, OSError):
+                pass
+        return 0, 0, screen_width, screen_height
+
+    @staticmethod
+    def _calculate_position(
+        work_area: tuple[int, int, int, int],
+        width: int,
+        height: int,
+        bottom_margin: int,
+    ) -> tuple[int, int]:
+        left, top, right, bottom = work_area
+        x = max(left, left + (right - left - width) // 2)
+        y = max(top, bottom - height - bottom_margin)
+        return x, y
+
     def _rounded_rect(self, x1, y1, x2, y2, fill: str, outline: str) -> None:
         # 先画一层描边色，再内缩一像素绘制主体，避免完整椭圆的
         # 描边在胶囊内部留下两道竖向弧线。
+        border_width = max(1, round(self.height / 34))
         self._pill_shape(x1, y1, x2, y2, outline)
-        self._pill_shape(x1 + 1, y1 + 1, x2 - 1, y2 - 1, fill)
+        self._pill_shape(
+            x1 + border_width,
+            y1 + border_width,
+            x2 - border_width,
+            y2 - border_width,
+            fill,
+        )
 
     def _pill_shape(self, x1, y1, x2, y2, fill: str) -> None:
         canvas = self.canvas
@@ -211,7 +259,7 @@ class DynamicIslandView:
                 x,
                 center_y + bar_height / 2,
                 fill=color,
-                width=2,
+                width=max(2, round(self.height / 17)),
                 capstyle=tk.ROUND,
             )
 
@@ -223,9 +271,10 @@ class DynamicIslandView:
         count = 7
         for index in range(count):
             pulse = (math.sin(self.phase - index * 0.72) + 1) / 2
-            radius = 1.4 + 1.8 * pulse
+            scale = self.height / 34
+            radius = (1.4 + 1.8 * pulse) * scale
             color = self._mix('#5c6cff', '#c066ff', pulse)
-            x = self.width / 2 + (index - (count - 1) / 2) * 9
+            x = self.width / 2 + (index - (count - 1) / 2) * 9 * scale
             canvas.create_oval(
                 x - radius,
                 center_y - radius,
@@ -244,17 +293,48 @@ class DynamicIslandView:
         left = self.width * 0.15
         right = self.width * 0.85
         head = left + (right - left) * progress
-        canvas.create_line(left, self.height / 2, right, self.height / 2, fill='#17483f', width=2)
-        canvas.create_line(max(left, head - 28), self.height / 2, head, self.height / 2, fill='#45f6cb', width=3)
+        scale = self.height / 34
+        canvas.create_line(
+            left,
+            self.height / 2,
+            right,
+            self.height / 2,
+            fill='#17483f',
+            width=max(2, round(2 * scale)),
+        )
+        canvas.create_line(
+            max(left, head - 28 * scale),
+            self.height / 2,
+            head,
+            self.height / 2,
+            fill='#45f6cb',
+            width=max(3, round(3 * scale)),
+        )
 
     def _draw_error(self) -> None:
         canvas = self.canvas
         if not canvas:
             return
-        x = self.width / 2
-        y = self.height / 2
-        canvas.create_line(x, y - 7, x, y + 2, fill='#ff6878', width=3, capstyle=tk.ROUND)
-        canvas.create_oval(x - 1.5, y + 6, x + 1.5, y + 9, fill='#ff6878', outline='')
+        # 使用柔和的红橙脉冲波表示异常，避免突兀的叹号图标。
+        count = 11
+        center_x = self.width / 2
+        center_y = self.height / 2
+        gap = max(6, self.width * 0.035)
+        for index in range(count):
+            distance = abs(index - (count - 1) / 2) / ((count - 1) / 2)
+            pulse = (math.sin(self.phase * 1.2 - index * 0.7) + 1) / 2
+            bar_height = 5 + (self.height * 0.34) * (1 - distance * 0.55) * pulse
+            x = center_x + (index - (count - 1) / 2) * gap
+            color = self._mix('#ff6677', '#ffad66', index / (count - 1))
+            canvas.create_line(
+                x,
+                center_y - bar_height / 2,
+                x,
+                center_y + bar_height / 2,
+                fill=color,
+                width=max(2, round(self.height / 17)),
+                capstyle=tk.ROUND,
+            )
 
     @staticmethod
     def _mix(start: str, end: str, ratio: float) -> str:

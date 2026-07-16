@@ -17,9 +17,9 @@ class DynamicIslandController:
     def __init__(
         self,
         enabled: bool = True,
-        width: int = 138,
-        height: int = 34,
-        bottom_margin: int = 42,
+        width: int = 276,
+        height: int = 68,
+        bottom_margin: int = 18,
         hold_delay_ms: int = 180,
     ) -> None:
         self.enabled = enabled

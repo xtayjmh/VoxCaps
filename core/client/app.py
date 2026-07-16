@@ -72,9 +72,9 @@ class CapsWriterClient:
         # 客户端内置动态状态岛；失败时静默退化，不影响语音输入主流程。
         self.island = DynamicIslandController(
             enabled=getattr(Config, 'dynamic_island_enabled', True),
-            width=getattr(Config, 'dynamic_island_width', 138),
-            height=getattr(Config, 'dynamic_island_height', 34),
-            bottom_margin=getattr(Config, 'dynamic_island_bottom_margin', 42),
+            width=getattr(Config, 'dynamic_island_width', 276),
+            height=getattr(Config, 'dynamic_island_height', 68),
+            bottom_margin=getattr(Config, 'dynamic_island_bottom_margin', 18),
             hold_delay_ms=getattr(Config, 'dynamic_island_hold_delay_ms', 180),
         )
         self.island.start()
