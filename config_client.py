@@ -32,7 +32,7 @@ class ClientConfig:
         },
     ]
 
-    threshold    = 0.3          # 快捷键触发阈值（秒）
+    threshold    = 0.25         # 快捷键短按/语音长按的统一判定阈值（秒）
 
     paste        = False        # 是否以写入剪切板然后模拟 Ctrl-V 粘贴的方式输出结果
     restore_clip = True         # 模拟粘贴后是否恢复剪贴板

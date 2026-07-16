@@ -48,6 +48,7 @@ class ShortcutTask:
         self.pipeline_task_id: Optional[str] = None
         self.recording_start_time: float = 0.0
         self.is_recording: bool = False
+        self._owns_direct_stream: bool = False
 
         # hold_mode 状态跟踪
         self.pressed: bool = False
@@ -72,21 +73,32 @@ class ShortcutTask:
             self._recorder_class = AudioRecorder
         return self._recorder_class(self.app)
 
-    def launch(self) -> None:
+    def launch(self, *, start_time: float | None = None, initial_audio: list[dict] | None = None) -> None:
         """启动录音任务"""
         logger.info(f"[{self.shortcut.key}] 触发：开始录音")
 
+        self._owns_direct_stream = initial_audio is None
+        if self._owns_direct_stream and not self.app.stream.begin_direct_recording():
+            logger.warning(f"[{self.shortcut.key}] 麦克风打开失败，录音任务未启动")
+            self._owns_direct_stream = False
+            return
+
         # 记录开始时间
-        self.recording_start_time = time.time()
+        self.recording_start_time = start_time if start_time is not None else time.time()
         self.pipeline_task_id = str(uuid.uuid1())
         self.is_recording = True
         self.app.island.recording(self.pipeline_task_id)
 
-        # 将开始标志放入队列
-        asyncio.run_coroutine_threadsafe(
-            self.state.queue_in.put({'type': 'begin', 'time': self.recording_start_time, 'data': None}),
-            self.app.loop
-        )
+        async def enqueue_start() -> None:
+            await self.state.queue_in.put({
+                'type': 'begin',
+                'time': self.recording_start_time,
+                'data': None,
+            })
+            for message in initial_audio or []:
+                await self.state.queue_in.put(message)
+
+        asyncio.run_coroutine_threadsafe(enqueue_start(), self.app.loop)
 
         # 更新录音状态
         self.state.start_recording(self.recording_start_time)
@@ -111,8 +123,12 @@ class ShortcutTask:
         self._status.stop()
         self.app.island.cancelled(self.pipeline_task_id)
 
-        self.task.cancel()
-        self.task = None
+        if self.task is not None:
+            self.task.cancel()
+            self.task = None
+        if self._owns_direct_stream:
+            self.app.stream.stop()
+            self._owns_direct_stream = False
 
     def finish(self) -> None:
         """完成录音任务"""
@@ -131,6 +147,10 @@ class ShortcutTask:
             }),
             self.app.loop
         )
+
+        if self._owns_direct_stream:
+            self.app.stream.stop()
+            self._owns_direct_stream = False
 
         # 执行 restore（可恢复按键 + 非阻塞模式）
         # 阻塞模式下按键不会发送到系统，状态不会改变，不需要恢复

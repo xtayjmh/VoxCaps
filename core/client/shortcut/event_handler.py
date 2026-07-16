@@ -17,7 +17,7 @@ class ShortcutEventHandler:
     处理按键按下和释放的逻辑，包括录音启动、取消、完成等
     """
 
-    def __init__(self, tasks, pool, emulator):
+    def __init__(self, tasks, pool, emulator, voice_sessions=None):
         """
         初始化事件处理器
 
@@ -29,11 +29,15 @@ class ShortcutEventHandler:
         self.tasks = tasks
         self.pool = pool
         self.emulator = emulator
+        self.voice_sessions = voice_sessions
 
     def handle_keydown(self, key_name, task) -> None:
         """处理按键按下事件"""
         # 长按模式
         if task.shortcut.hold_mode:
+            if self.voice_sessions is not None:
+                self.voice_sessions.press(key_name, task)
+                return
             if not task.is_recording:
                 task.launch()
             return
@@ -58,6 +62,10 @@ class ShortcutEventHandler:
             return
 
         # 长按模式
+        if self.voice_sessions is not None:
+            self.voice_sessions.release(key_name)
+            return
+
         if not task.is_recording:
             return
 

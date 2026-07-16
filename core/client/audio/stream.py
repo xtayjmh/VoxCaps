@@ -8,10 +8,11 @@
 
 from __future__ import annotations
 
-import sys
 import time
 import threading
-from typing import TYPE_CHECKING, Optional
+from collections import deque
+from enum import Enum
+from typing import TYPE_CHECKING, Callable, Optional
 
 import numpy as np
 import sounddevice as sd
@@ -22,6 +23,13 @@ from . import logger
 if TYPE_CHECKING:
     from core.client.state import ClientState
     from ..app import CapsWriterClient
+
+
+class CaptureMode(str, Enum):
+    IDLE = 'idle'
+    CANDIDATE = 'candidate'
+    RECORDING = 'recording'
+    DIRECT = 'direct'
 
 
 
@@ -54,6 +62,11 @@ class AudioStreamManager:
         self.app = app
         self._channels = 1
         self._running = False  # 标志是否应该运行
+        self._lifecycle_lock = threading.RLock()
+        self._capture_lock = threading.RLock()
+        self._capture_mode = CaptureMode.IDLE
+        # 最多保留约 2 秒候选音频，防止调度异常造成内存持续增长。
+        self._candidate_frames: deque[dict] = deque(maxlen=40)
 
     @property
     def state(self) -> ClientState:
@@ -72,22 +85,80 @@ class AudioStreamManager:
 
         当音频流接收到新数据时调用，将数据放入异步队列中。
         """
-        # 只在录音状态时处理数据
-        if not self.state.recording:
-            return
-
-        import asyncio
-
-        # 将数据放入队列
-        if self.app.loop and self.state.queue_in:
-            asyncio.run_coroutine_threadsafe(
-                self.state.queue_in.put({
-                    'type': 'data',
-                    'time': time.time(),
-                    'data': indata.copy(),
-                }),
-                self.app.loop
+        message = {
+            'type': 'data',
+            'time': time.time(),
+            'data': indata.copy(),
+        }
+        with self._capture_lock:
+            if self._capture_mode is CaptureMode.CANDIDATE:
+                self._candidate_frames.append(message)
+                return
+            direct_recording = (
+                self._capture_mode is CaptureMode.DIRECT
+                and self.state.recording
             )
+            if self._capture_mode is not CaptureMode.RECORDING and not direct_recording:
+                return
+
+            import asyncio
+            if self.app.loop and self.state.queue_in:
+                asyncio.run_coroutine_threadsafe(
+                    self.state.queue_in.put(message),
+                    self.app.loop
+                )
+
+    def begin_candidate(self) -> bool:
+        """打开麦克风并把音频暂存在内存候选缓冲中。"""
+        with self._lifecycle_lock:
+            with self._capture_lock:
+                if self._capture_mode is not CaptureMode.IDLE:
+                    return False
+                self._candidate_frames.clear()
+                self._capture_mode = CaptureMode.CANDIDATE
+
+            stream = self._start_locked()
+            if stream is not None:
+                return True
+
+            with self._capture_lock:
+                self._candidate_frames.clear()
+                self._capture_mode = CaptureMode.IDLE
+            return False
+
+    def begin_direct_recording(self) -> bool:
+        """兼容单击和 UDP 触发：按任务生命周期打开实时录音流。"""
+        with self._lifecycle_lock:
+            with self._capture_lock:
+                if self._capture_mode is not CaptureMode.IDLE:
+                    return False
+                self._capture_mode = CaptureMode.DIRECT
+
+            stream = self._start_locked()
+            if stream is not None:
+                return True
+            with self._capture_lock:
+                self._capture_mode = CaptureMode.IDLE
+            return False
+
+    def commit_candidate(self, start_recording: Callable[[list[dict]], None]) -> bool:
+        """原子提交候选帧，并切换到实时录音模式。"""
+        with self._capture_lock:
+            if self._capture_mode is not CaptureMode.CANDIDATE:
+                return False
+            frames = list(self._candidate_frames)
+            start_recording(frames)
+            self._candidate_frames.clear()
+            self._capture_mode = CaptureMode.RECORDING
+            return True
+
+    def discard_candidate(self) -> None:
+        """丢弃候选音频并释放麦克风。"""
+        with self._lifecycle_lock:
+            with self._capture_lock:
+                self._candidate_frames.clear()
+                self._capture_mode = CaptureMode.IDLE
+            self._stop_locked()
 
     def _on_stream_finished(self) -> None:
         """音频流结束回调"""
@@ -100,6 +171,10 @@ class AudioStreamManager:
         self.reopen()
 
     def start(self) -> Optional[sd.InputStream]:
+        with self._lifecycle_lock:
+            return self._start_locked()
+
+    def _start_locked(self) -> Optional[sd.InputStream]:
         """
         启动音频流
 
@@ -124,8 +199,7 @@ class AudioStreamManager:
             logger.warning("无法获取音频设备名称（编码问题）")
         except sd.PortAudioError:
             logger.error("未找到麦克风设备")
-            input('按回车键退出')
-            sys.exit(1)
+            return None
 
         # 创建音频流
         try:
@@ -166,6 +240,13 @@ class AudioStreamManager:
 
     def stop(self) -> None:
         """停止音频流"""
+        with self._lifecycle_lock:
+            self._stop_locked()
+
+    def _stop_locked(self) -> None:
+        with self._capture_lock:
+            self._capture_mode = CaptureMode.IDLE
+            self._candidate_frames.clear()
         if not self._running:
             return
 
@@ -186,22 +267,26 @@ class AudioStreamManager:
         Returns:
             新创建的音频输入流
         """
-        logger.info("正在重启音频流...")
+        with self._lifecycle_lock:
+            logger.info("正在重启音频流...")
+            with self._capture_lock:
+                previous_mode = self._capture_mode
+                previous_candidate_frames = list(self._candidate_frames)
 
-        # 停止旧流
-        self.stop()
+            self._stop_locked()
 
-        # 重载 PortAudio，更新设备列表
-        try:
-            sd._terminate()
-            sd._ffi.dlclose(sd._lib)
-            sd._lib = sd._ffi.dlopen(sd._libname)
-            sd._initialize()
-        except Exception as e:
-            logger.warning(f"重载 PortAudio 时发生警告: {e}")
+            try:
+                sd._terminate()
+                sd._ffi.dlclose(sd._lib)
+                sd._lib = sd._ffi.dlopen(sd._libname)
+                sd._initialize()
+            except Exception as e:
+                logger.warning(f"重载 PortAudio 时发生警告: {e}")
 
-        # 等待设备稳定
-        time.sleep(0.1)
-
-        # 启动新流
-        return self.start()
+            time.sleep(0.1)
+            stream = self._start_locked()
+            if stream is not None:
+                with self._capture_lock:
+                    self._capture_mode = previous_mode
+                    self._candidate_frames.extend(previous_candidate_frames)
+            return stream

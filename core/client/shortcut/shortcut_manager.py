@@ -21,6 +21,7 @@ from core.client.shortcut.key_mapper import KeyMapper
 from core.client.shortcut.emulator import ShortcutEmulator
 from core.client.shortcut.event_handler import ShortcutEventHandler
 from core.client.shortcut.task import ShortcutTask
+from core.client.audio.session import VoiceInputSessionCoordinator
 
 if TYPE_CHECKING:
     from core.client.shortcut.shortcut_config import Shortcut
@@ -57,6 +58,7 @@ class ShortcutManager:
 
         # 线程池
         self._pool = ThreadPoolExecutor(max_workers=4)
+        self._mic_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix='VoxCapsMic')
 
         # 按键模拟器
         self._emulator = ShortcutEmulator()
@@ -64,8 +66,19 @@ class ShortcutManager:
         # 按键恢复状态追踪
         self._restoring_keys = set()
 
+        self.voice_sessions = VoiceInputSessionCoordinator(
+            stream=self.app.stream,
+            executor=self._mic_pool,
+            restore_short_press=self._restore_short_press,
+        )
+
         # 事件处理器
-        self._event_handler = ShortcutEventHandler(self.tasks, self._pool, self._emulator)
+        self._event_handler = ShortcutEventHandler(
+            self.tasks,
+            self._pool,
+            self._emulator,
+            voice_sessions=self.voice_sessions,
+        )
 
         # 初始化快捷键任务
         self._init_tasks()
@@ -151,7 +164,7 @@ class ShortcutManager:
             if msg == WM_XBUTTONDOWN:
                 self._event_handler.handle_keydown(button_name, task)
             elif msg == WM_XBUTTONUP:
-                self._handle_mouse_keyup(button_name, task)
+                self._event_handler.handle_keyup(button_name, task)
 
             # 阻塞事件
             if task.shortcut.suppress and self.mouse_listener:
@@ -187,6 +200,15 @@ class ShortcutManager:
             task.finish()
 
     # ========== 按键恢复管理 ==========
+
+    def _restore_short_press(self, key_name: str, task: ShortcutTask) -> None:
+        """异步补发被阻塞的短按按键或鼠标键。"""
+        if not task.shortcut.suppress:
+            return
+        if task.shortcut.type == 'mouse':
+            self._pool.submit(self._emulator.emulate_mouse_click, key_name)
+        else:
+            self._pool.submit(self._emulator.emulate_key, key_name)
 
     def schedule_restore(self, key: str) -> None:
         """
@@ -283,6 +305,7 @@ class ShortcutManager:
 
     def stop(self) -> None:
         """停止所有监听器和清理资源"""
+        self.voice_sessions.shutdown()
         if self.keyboard_listener:
             try:
                 self.keyboard_listener.stop()
@@ -307,5 +330,6 @@ class ShortcutManager:
                 task.cancel()
 
         # 关闭线程池
+        self._mic_pool.shutdown(wait=False, cancel_futures=True)
         self._pool.shutdown(wait=False)
         logger.debug("快捷键管理器线程池已关闭")

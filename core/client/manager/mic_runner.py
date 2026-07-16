@@ -33,8 +33,7 @@ class MicRunner:
         # 2. UI 提示
         TipsDisplay.show_mic_tips()
 
-        # 3. 开启运行组件 (音频流、快捷键监听)
-        self.app.stream.start()
+        # 3. 所有触发方式都按各自任务生命周期打开麦克风
         self.app.shortcut.start()
         
         # 4. 开启 UDP 控制 (如果启用)
