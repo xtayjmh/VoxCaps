@@ -42,7 +42,7 @@ class DynamicIslandView:
     def run(self) -> None:
         root = tk.Tk()
         self.root = root
-        root.title('CapsWriter Dynamic Island')
+        root.title('VoxCaps Dynamic Island')
         root.withdraw()
         root.overrideredirect(True)
         root.configure(bg=self.TRANSPARENT)
@@ -204,8 +204,8 @@ class DynamicIslandView:
         return x, y
 
     def _rounded_rect(self, x1, y1, x2, y2, fill: str, outline: str) -> None:
-        # 先画一层描边色，再内缩一像素绘制主体，避免完整椭圆的
-        # 描边在胶囊内部留下两道竖向弧线。
+        # 外层与内层都使用单一多边形轮廓，不再拼接矩形和椭圆，
+        # 从根源上避免 Tk 栅格化造成的接缝错位。
         border_width = max(1, round(self.height / 34))
         self._pill_shape(x1, y1, x2, y2, outline)
         self._pill_shape(
@@ -220,19 +220,31 @@ class DynamicIslandView:
         canvas = self.canvas
         if not canvas:
             return
-        radius = max(8, (y2 - y1) / 2)
-        canvas.create_rectangle(
-            x1 + radius, y1, x2 - radius, y2, fill=fill, outline=''
+        points = self._rounded_polygon_points(x1, y1, x2, y2)
+        canvas.create_polygon(points, fill=fill, outline='')
+
+    @staticmethod
+    def _rounded_polygon_points(x1, y1, x2, y2) -> list[float]:
+        """生成略小于半圆的圆角矩形轮廓点。"""
+        width = x2 - x1
+        height = y2 - y1
+        radius = max(8.0, min(height * 0.44, width / 2))
+        corners = (
+            (x2 - radius, y1 + radius, -90, 0),
+            (x2 - radius, y2 - radius, 0, 90),
+            (x1 + radius, y2 - radius, 90, 180),
+            (x1 + radius, y1 + radius, 180, 270),
         )
-        canvas.create_rectangle(
-            x1, y1 + radius, x2, y2 - radius, fill=fill, outline=''
-        )
-        canvas.create_oval(
-            x1, y1, x1 + 2 * radius, y2, fill=fill, outline=''
-        )
-        canvas.create_oval(
-            x2 - 2 * radius, y1, x2, y2, fill=fill, outline=''
-        )
+        points: list[float] = []
+        steps = 12
+        for center_x, center_y, start, end in corners:
+            for step in range(steps + 1):
+                angle = math.radians(start + (end - start) * step / steps)
+                points.extend((
+                    center_x + radius * math.cos(angle),
+                    center_y + radius * math.sin(angle),
+                ))
+        return points
 
     def _draw_wave(self, start: str, end: str) -> None:
         canvas = self.canvas

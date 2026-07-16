@@ -7,7 +7,7 @@
 打包后的目录结构清晰分离：
 
 ```
-dist/CapsWriter-Offline/
+dist/VoxCaps/
 ├── start_server.exe          # 服务端可执行文件
 ├── start_client.exe          # 客户端可执行文件
 │
@@ -214,7 +214,7 @@ pyinstaller --log-level WARN build.spec
 ### 步骤 5：验证目录结构
 
 ```bash
-cd dist\CapsWriter-Offline
+cd dist\VoxCaps
 
 # 检查可执行文件
 dir *.exe
@@ -315,7 +315,7 @@ excludes = [
 - [Sherpa-ONNX 文档](https://k2-fsa.github.io/sherpa/onnx/)
 
 ### 项目相关
-- [CapsWriter-Offline README](../readme.md)
+- [VoxCaps README](../readme.md)
 - [开发指南](../CLAUDE.md)
 
 ## 🔍 故障排查
@@ -349,4 +349,4 @@ excludes = [
 **PyInstaller 版本**: 6.0+
 **Python 版本**: 3.8+
 **Sherpa-ONNX 版本**: 1.12.20
-**项目版本**: CapsWriter-Offline v2.2
+**项目版本**: VoxCaps v2.6

@@ -43,6 +43,32 @@ class DynamicIslandGeometryTests(unittest.TestCase):
         self.assertGreaterEqual(y, work_area[1])
         self.assertLessEqual(y + 68, work_area[3] - 18)
 
+    def test_pill_uses_one_seamless_polygon(self):
+        class CanvasSpy:
+            def __init__(self):
+                self.polygons = []
+
+            def create_polygon(self, points, **options):
+                self.polygons.append((points, options))
+
+        view = DynamicIslandView.__new__(DynamicIslandView)
+        view.canvas = CanvasSpy()
+        view.height = 68
+
+        view._pill_shape(0, 0, 275, 67, '#050505')
+
+        self.assertEqual(len(view.canvas.polygons), 1)
+        points, options = view.canvas.polygons[0]
+        self.assertGreater(len(points), 80)
+        self.assertEqual(options, {'fill': '#050505', 'outline': ''})
+
+    def test_corner_radius_is_smaller_than_half_height(self):
+        points = DynamicIslandView._rounded_polygon_points(0, 0, 275, 67)
+        top_left_x, top_left_y = points[-2:]
+
+        self.assertAlmostEqual(top_left_y, 0.0)
+        self.assertLess(top_left_x, 67 / 2)
+
 
 if __name__ == '__main__':
     unittest.main()

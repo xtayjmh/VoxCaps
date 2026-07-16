@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-CapsWriter Offline 客户端主程序门面类 (Facade)
+VoxCaps 客户端主程序门面类 (Facade)
 
 采用外观模式统一管理音频流 (AudioStreamManager)、
 识别结果处理 (ResultProcessor) 和快捷键管理 (ShortcutManager)。

@@ -173,7 +173,7 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='CapsWriter-Offline-Client',
+    name='VoxCaps-Client',
 )
 
 
@@ -184,7 +184,9 @@ my_files = [
     'hot.txt',
     'hot-server.txt',
     'hot-rule.txt',
-    'readme.md'
+    'readme.md',
+    'LICENSE',
+    'NOTICE.md',
 ]
 my_folders = []     # 使用软链接，不再复制
 dest_root = join('dist', basename(coll.name))

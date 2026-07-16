@@ -240,7 +240,7 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='CapsWriter-Offline',
+    name='VoxCaps',
 )
 
 
@@ -254,7 +254,8 @@ my_files = [
     'hot-server.txt',
     'hot-rule.txt',
     'readme.md',
-    'LICENSE'
+    'LICENSE',
+    'NOTICE.md',
 ]
 my_folders = []     # 这里是要复制的文件夹
 dest_root = join('dist', basename(coll.name))

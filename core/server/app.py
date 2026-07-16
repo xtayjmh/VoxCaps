@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-CapsWriter Offline 服务端主程序门面类 (Facade)
+VoxCaps 服务端主程序门面类 (Facade)
 
 采用外观模式统一管理进程管理器 (ProcessManager) 和网络管理器 (SocketManager)。
 该类是整个服务端应用的中心指挥部，负责初始化生命周期、托盘图标、
@@ -48,9 +48,9 @@ class CapsWriterServer:
     def _print_banner(self):
         """打印启动信息"""
         console.line(2)
-        console.rule('[bold #d55252]CapsWriter Offline Server[/]'); console.line()
+        console.rule('[bold #d55252]VoxCaps Server[/]'); console.line()
         console.print(f'版本：[bold green]{self.version}[/]', end='\n\n')
-        console.print(f'项目地址：[cyan underline]https://github.com/HaujetZhao/CapsWriter-Offline', end='\n\n')
+        console.print(f'项目地址：[cyan underline]https://github.com/xtayjmh/VoxCaps', end='\n\n')
         console.print(f'当前基文件夹：[cyan underline]{self.base_dir}[/]', end='\n\n')
         console.print(f'绑定的服务地址：[cyan underline]{Config.addr}:{Config.port}[/]', end='\n\n')
 

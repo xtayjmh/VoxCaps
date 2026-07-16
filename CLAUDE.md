@@ -1,4 +1,4 @@
-# CapsWriter-Offline 开发指南
+# VoxCaps 开发指南
 
 ## 核心设计 (Core Design)
 **"快、准、稳、离线"**
@@ -173,4 +173,3 @@
 ## 用户偏好 (User Preferences)
 - **语言**: 中文 (Chinese)，总结、Plan、WalkThrough、注释都要用中文。
 - **环境**: 运行环境是 `conda activate c`，或用 `D:/anaconda3/envs/c/python.exe` 或 `conda run -n c` 执行。所有的临时 Python 代码要先写到临时脚本文件，再运行，而不要直接用命令行跑代码。临时脚本用完不要删。
-

@@ -41,8 +41,8 @@ dynamic_island_hold_delay_ms = 180  # 按住多久后显示
 
 脚本使用 `uv.lock` 创建可复现环境，并依次生成：
 
-- `CapsWriter-Offline`：Client + Server 完整包；
-- `CapsWriter-Offline-Client`：只含 Client 的局域网客户端包。
+- `VoxCaps`：Client + Server 完整包；
+- `VoxCaps-Client`：只含 Client 的局域网客户端包。
 
 ZIP 文件输出到 `release`。本机需要 Python 和 uv；若尚未安装 uv，可运行 `python -m pip install uv`。ZIP 使用 Python 标准库生成，不再依赖 7-Zip。普通用户不需要安装 uv，直接使用发布页中的 ZIP 即可。
 

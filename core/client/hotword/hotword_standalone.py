@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-CapsWriter-Offline 独立热词与纠错系统 (Portable Standalone)
+VoxCaps 独立热词与纠错系统 (Portable Standalone)
 整合了最新的音素处理、相似度算法、FastRAG 加速检索和纠错历史 RAG。
 """
 

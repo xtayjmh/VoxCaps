@@ -4,8 +4,8 @@
 打包脚本 - 使用 7zip 压缩 dist 目录中的构建产物
 
 功能：
-1. 打包 CapsWriter-Offline（服务端+客户端）
-2. 打包 CapsWriter-Offline-Client（仅客户端）
+1. 打包 VoxCaps（服务端+客户端）
+2. 打包 VoxCaps-Client（仅客户端）
 3. 智能排除模型文件（.onnx, .dll, .json 等），但保留说明文档
 """
 
@@ -139,7 +139,7 @@ def main():
         return 1
 
     print("=" * 60)
-    print("CapsWriter-Offline 打包脚本")
+    print("VoxCaps 打包脚本")
     print("=" * 60)
 
     # 构建输出目录
@@ -151,21 +151,21 @@ def main():
     # 打包配置列表
     packages = []
 
-    # 检查 CapsWriter-Offline（服务端+客户端）
-    server_dist = dist_dir / 'CapsWriter-Offline'
+    # 检查 VoxCaps（服务端+客户端）
+    server_dist = dist_dir / 'VoxCaps'
     if server_dist.exists():
         packages.append({
             'source': server_dist,
-            'output': release_dir / f'CapsWriter-Offline-{timestamp}.zip',
+            'output': release_dir / f'VoxCaps-{timestamp}.zip',
             'name': '服务端+客户端'
         })
 
-    # 检查 CapsWriter-Offline-Client（仅客户端）
-    client_dist = dist_dir / 'CapsWriter-Offline-Client'
+    # 检查 VoxCaps-Client（仅客户端）
+    client_dist = dist_dir / 'VoxCaps-Client'
     if client_dist.exists():
         packages.append({
             'source': client_dist,
-            'output': release_dir / f'CapsWriter-Offline-Client-{timestamp}.zip',
+            'output': release_dir / f'VoxCaps-Client-{timestamp}.zip',
             'name': '仅客户端'
         })
 
@@ -190,7 +190,7 @@ def main():
             list_file_name = f'file_list_{idx}.txt'
 
             # 生成文件列表
-            is_client_only = pkg['source'].name == 'CapsWriter-Offline-Client'
+            is_client_only = pkg['source'].name == 'VoxCaps-Client'
             files, list_file = create_file_list(pkg['source'], list_file_name, is_client_only)
 
             if not files:

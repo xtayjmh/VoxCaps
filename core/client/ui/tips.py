@@ -59,14 +59,14 @@ class TipsDisplay:
         """显示麦克风模式的启动提示"""
         shortcuts_display = _get_shortcuts_display()
 
-        console.rule('[bold #d55252]CapsWriter Offline Client[/]')
+        console.rule('[bold #d55252]VoxCaps Client[/]')
         console.print(f'\n版本：[bold green]{__version__}[/]')
 
         markdown = f'''
 
-项目地址：https://github.com/HaujetZhao/CapsWriter-Offline
+项目地址：https://github.com/xtayjmh/VoxCaps
 
-**CapsWriter-Offline** 是一个专为 Windows 打造的**完全离线**语音输入工具。
+**VoxCaps** 是一个基于 CapsWriter-Offline 二次开发的 Windows 本地优先语音输入工具。
 
 使用步骤：
 
@@ -108,7 +108,7 @@ class TipsDisplay:
         """显示文件转录模式的启动提示"""
         console.print(f'\n版本：[bold green]{__version__}[/]')
 
-        markdown = '\n项目地址：https://github.com/HaujetZhao/CapsWriter-Offline'
+        markdown = '\n项目地址：https://github.com/xtayjmh/VoxCaps'
         console.print(Markdown(markdown), highlight=True)
         console.print(f'当前基文件夹：[cyan underline]{os.getcwd()}[/]')
         console.print(f'服务端地址： [cyan underline]{Config.addr}:{Config.port}[/]')
