@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Optional, Dict, Any
 if TYPE_CHECKING:
     import sounddevice as sd
     from websockets.legacy.client import WebSocketClientProtocol
-    from .app import CapsWriterClient
+    from .app import VoxCapsClient
 
 from rich.console import Console
 from rich.theme import Theme
@@ -57,7 +57,7 @@ class ClientState:
     queue_out: asyncio.Queue = field(default_factory=asyncio.Queue)
     websocket: Optional[WebSocketClientProtocol] = None
     stream: Optional[sd.InputStream] = None
-    app: Optional[CapsWriterClient] = None
+    app: Optional[VoxCapsClient] = None
 
     recording: bool = False
     recording_start_time: float = 0.0

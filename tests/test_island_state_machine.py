@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 MODULE_PATH = Path(__file__).parents[1] / 'core' / 'client' / 'island' / 'state_machine.py'
-SPEC = importlib.util.spec_from_file_location('capswriter_island_state_machine', MODULE_PATH)
+SPEC = importlib.util.spec_from_file_location('voxcaps_island_state_machine', MODULE_PATH)
 MODULE = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = MODULE
 SPEC.loader.exec_module(MODULE)

@@ -8,7 +8,7 @@
 # 详细说明见 docs/热词功能如何使用.md
 
 # ====== 纠正示例 ======
-CapsWriter | Caps Rider
+VoxCaps | Vox Caps
 Paraformer | performer 
 SenseVoice-small
 Fun-ASR-Nano | 放 ASR Nano

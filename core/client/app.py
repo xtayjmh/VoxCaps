@@ -39,9 +39,9 @@ from platform import system
 
 
 
-class CapsWriterClient:
+class VoxCapsClient:
     """
-    CapsWriter 客户端门面类
+    VoxCaps 客户端门面类
     
     管理的外部接口简洁：start()。
     """
@@ -96,7 +96,7 @@ class CapsWriterClient:
         """
         统一释放所有资源（清理顺序：硬件 -> 托盘 -> WebSocket -> State）
         """
-        logger.info("正在执行 CapsWriterClient 资源释放...")
+        logger.info("正在执行 VoxCapsClient 资源释放...")
 
         # 1. 停止核心运行组件
         self.udp.stop()

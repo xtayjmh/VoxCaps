@@ -25,7 +25,7 @@ from . import logger
 
 if TYPE_CHECKING:
     from core.client.state import ClientState
-    from core.client.app import CapsWriterClient
+    from core.client.app import VoxCapsClient
 
 # 日志记录器
 
@@ -40,7 +40,7 @@ class AudioRecorder:
     - 将音频数据发送到识别服务端
     """
     
-    def __init__(self, app: CapsWriterClient):
+    def __init__(self, app: VoxCapsClient):
         """
         初始化录制器
         

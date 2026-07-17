@@ -39,7 +39,7 @@ class DynamicIslandController:
             self._stop_event.clear()
             self._thread = Thread(
                 target=self._run,
-                name='CapsWriterDynamicIsland',
+                name='VoxCapsDynamicIsland',
                 daemon=True,
             )
             self._thread.start()

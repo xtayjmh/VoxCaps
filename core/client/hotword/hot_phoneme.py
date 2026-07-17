@@ -314,7 +314,7 @@ if __name__ == "__main__":
 科大讯飞
 
 # 英文热词
-CapsWriter
+VoxCaps
 Python
 Microsoft
 iPhone

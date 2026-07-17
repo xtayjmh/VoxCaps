@@ -77,8 +77,8 @@ def char_level_substring_score(main_text: str, pattern: str) -> float:
         相似度分数 (0.0 ~ 1.0)
     
     示例:
-        char_level_substring_score("capswriter", "capswriter") = 1.0
-        char_level_substring_score("youcanusecapswritertotype", "capswriter") ≈ 1.0
+        char_level_substring_score("voxcaps", "voxcaps") = 1.0
+        char_level_substring_score("youcanusevoxcapstotype", "voxcaps") ≈ 1.0
     """
     if not pattern:
         return 0.0

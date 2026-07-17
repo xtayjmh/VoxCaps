@@ -66,7 +66,7 @@ class TipsDisplay:
 
 项目地址：https://github.com/xtayjmh/VoxCaps
 
-**VoxCaps** 是一个基于 CapsWriter-Offline 二次开发的 Windows 本地优先语音输入工具。
+**VoxCaps** 是一个 Windows 本地优先语音输入工具，支持离线模型、局域网服务端和客户端内置灵动岛。
 
 使用步骤：
 

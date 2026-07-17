@@ -60,7 +60,7 @@ def normalize_text(text: str) -> str:
     规范化文本：驼峰拆分 + 分隔符替换为空格 + 统一小写
     
     这确保：
-    - `CapsWriter` -> `caps writer`
+    - `VoxCaps` -> `vox caps`
     - `iPhone15Pro` -> `iphone 15 pro`
     - `7-Zip` / `7 zip` -> `7 zip`
     """
@@ -318,4 +318,3 @@ if __name__ == "__main__":
         seq, indices = get_phoneme_info(text)
         print(f"Phonemes: {seq}")
         # print(f"Indices: {indices}")
-

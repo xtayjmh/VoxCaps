@@ -32,7 +32,7 @@ class TrayManager:
         
         # 启用托盘
         enable_min_to_tray(
-            'CapsWriter Client',
+            'VoxCaps Client',
             icon_path,
             exit_callback=self.app.stop,
             more_options=[

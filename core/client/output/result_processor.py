@@ -27,7 +27,7 @@ from core.client.llm.llm_write_md import write_llm_md
 
 if TYPE_CHECKING:
     from core.client.state import ClientState
-    from core.client.app import CapsWriterClient
+    from core.client.app import VoxCapsClient
     from core.client.hotword.manager import HotwordManager
     from core.client.diary.diary_writer import DiaryWriter
 
@@ -61,7 +61,7 @@ class ResultProcessor:
     - 保存录音和日记
     """
     
-    def __init__(self, app: CapsWriterClient):
+    def __init__(self, app: VoxCapsClient):
         """
         初始化结果处理器
 

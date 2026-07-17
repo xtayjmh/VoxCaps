@@ -26,7 +26,7 @@ from core.tools.token_sync import sync_tokens_from_text
 
 if TYPE_CHECKING:
     from core.client.state import ClientState
-    from core.client.app import CapsWriterClient
+    from core.client.app import VoxCapsClient
 
 
 class FileTranscriber:
@@ -40,7 +40,7 @@ class FileTranscriber:
     4. 调用 ResultHandler 处理结果
     """
     
-    def __init__(self, app: CapsWriterClient, file: Path):
+    def __init__(self, app: VoxCapsClient, file: Path):
         """
         初始化文件转录器
         

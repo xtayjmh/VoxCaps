@@ -18,9 +18,9 @@ from .connection.server_manager import SocketManager
 from .ui.tray_manager import TrayManager
 from . import logger
 
-class CapsWriterServer:
+class VoxCapsServer:
     """
-    CapsWriter 服务端外观类
+    VoxCaps 服务端外观类
     
     管理的外部接口极其简洁：start()。
     """

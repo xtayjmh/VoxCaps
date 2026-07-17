@@ -22,7 +22,7 @@ from . import logger
 
 if TYPE_CHECKING:
     from core.client.state import ClientState
-    from ..app import CapsWriterClient
+    from ..app import VoxCapsClient
 
 
 class CaptureMode(str, Enum):
@@ -52,7 +52,7 @@ class AudioStreamManager:
     SAMPLE_RATE = 48000
     BLOCK_DURATION = 0.05  # 50ms
 
-    def __init__(self, app: CapsWriterClient):
+    def __init__(self, app: VoxCapsClient):
         """
         初始化音频流管理器
 

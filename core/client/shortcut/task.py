@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from core.client.shortcut.shortcut_config import Shortcut
     from core.client.state import ClientState
     from core.client.audio.recorder import AudioRecorder
-    from core.client.app import CapsWriterClient
+    from core.client.app import VoxCapsClient
 
 
 
@@ -30,7 +30,7 @@ class ShortcutTask:
     跟踪每个快捷键独立的录音状态，防止互相干扰。
     """
 
-    def __init__(self, app: CapsWriterClient, shortcut: Shortcut, recorder_class=None):
+    def __init__(self, app: VoxCapsClient, shortcut: Shortcut, recorder_class=None):
         """
         初始化快捷键任务
 

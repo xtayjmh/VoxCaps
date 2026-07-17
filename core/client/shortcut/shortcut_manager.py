@@ -27,7 +27,7 @@ from core.client.audio.executor import DaemonSerialExecutor
 if TYPE_CHECKING:
     from core.client.shortcut.shortcut_config import Shortcut
     from core.client.state import ClientState
-    from core.client.app import CapsWriterClient
+    from core.client.app import VoxCapsClient
 
 
 
@@ -39,7 +39,7 @@ class ShortcutManager:
     所有事件处理都在 win32_event_filter 中完成，确保高性能和低延迟。
     """
 
-    def __init__(self, app: CapsWriterClient, shortcuts: List[Shortcut]):
+    def __init__(self, app: VoxCapsClient, shortcuts: List[Shortcut]):
         """
         初始化快捷键管理器
 

@@ -17,7 +17,7 @@ from rich.console import Console
 from core.server.schema import Result, RecognitionSession
 
 if TYPE_CHECKING:
-    from .app import CapsWriterServer
+    from .app import VoxCapsServer
 
 # Rich console 用于控制台输出（服务端统一使用此实例）
 console = Console(highlight=False)
@@ -35,7 +35,7 @@ class ServerState:
     - queue_out: 结果输出队列（识别进程 -> 主进程）
     - recognize_process: 识别子进程句柄
     """
-    app: Optional[CapsWriterServer] = None
+    app: Optional[VoxCapsServer] = None
 
     # WebSocket 连接池
     sockets: Dict[str, websockets.WebSocketServerProtocol] = field(default_factory=dict)

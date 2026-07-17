@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ISLAND_DIR = Path(__file__).parents[1] / 'core' / 'client' / 'island'
-PACKAGE_NAME = 'capswriter_test_island'
+PACKAGE_NAME = 'voxcaps_test_island'
 package = types.ModuleType(PACKAGE_NAME)
 package.__path__ = [str(ISLAND_DIR)]
 sys.modules.setdefault(PACKAGE_NAME, package)

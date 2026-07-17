@@ -23,7 +23,7 @@ import asyncio
 
 if TYPE_CHECKING:
     from core.client.state import ClientState
-    from ..app import CapsWriterClient
+    from ..app import VoxCapsClient
 
 
 class CommunicationError(Exception):
@@ -43,7 +43,7 @@ class WebSocketManager:
         max_retries: 最大重试次数
     """
 
-    def __init__(self, app: CapsWriterClient):
+    def __init__(self, app: VoxCapsClient):
         """
         初始化 WebSocket 管理器
 

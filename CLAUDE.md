@@ -76,7 +76,7 @@
     - [`大助理.py`](LLM/大助理.py) - 大助理（zhipu/glm-4.5-air）
     - [`小助理.py`](LLM/小助理.py) - 小助理（lmstudio/local-model）
 - **服务端核心**: [`core/server/`](core/server/)
-    - [`app.py`](core/server/app.py) - `CapsWriterServer` 门面类
+    - [`app.py`](core/server/app.py) - `VoxCapsServer` 门面类
     - [`state.py`](core/server/state.py) - `ServerState` / `WorkerState` 共享状态
     - [`schema.py`](core/server/schema.py) - `Task` / `Result` / `RecognitionSession` 数据结构
     - [`connection/server_manager.py`](core/server/connection/server_manager.py) - `SocketManager` WebSocket 服务端生命周期
@@ -90,7 +90,7 @@
     - [`merger/`](core/server/merger/) - 文本/Token 合并算法
     - [`formatter/text_formatter.py`](core/server/formatter/text_formatter.py) - `TextFormatter` 后处理
 - **客户端核心**: [`core/client/`](core/client/)
-    - [`app.py`](core/client/app.py) - `CapsWriterClient` 门面类
+    - [`app.py`](core/client/app.py) - `VoxCapsClient` 门面类
     - [`state.py`](core/client/state.py) - `ClientState` 共享状态
     - [`connection/websocket_manager.py`](core/client/connection/websocket_manager.py) - `WebSocketManager`
     - [`audio/`](core/client/audio/) - `AudioStreamManager` / `Recorder` / `FileManager`

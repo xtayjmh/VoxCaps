@@ -6,14 +6,14 @@ from config_server import ServerConfig as Config
 from ..state import console
 from .. import logger # Server module logger
 if TYPE_CHECKING:
-    from ..app import CapsWriterServer
+    from ..app import VoxCapsServer
 
 
 class TrayManager:
     """
     托盘管理器：负责系统托盘图标的初始化、菜单构建及回调处理。
     """
-    def __init__(self, app: CapsWriterServer):
+    def __init__(self, app: VoxCapsServer):
         self.app = app
 
     def start(self):
@@ -32,7 +32,7 @@ class TrayManager:
         
         # 启用托盘
         enable_min_to_tray(
-            'CapsWriter Server',
+            'VoxCaps Server',
             icon_path,
             exit_callback=self._request_exit
         )

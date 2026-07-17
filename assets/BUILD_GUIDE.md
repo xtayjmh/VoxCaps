@@ -126,7 +126,7 @@ INCLUDE_CUDA_PROVIDER = False
 
 ```bash
 # 激活 conda 环境
-conda activate capswriter
+conda activate voxcaps
 
 # 安装 PyInstaller
 pip install pyinstaller

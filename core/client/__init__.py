@@ -2,7 +2,7 @@
 """
 客户端模块
 
-提供 CapsWriter 客户端的所有功能模块。
+提供 VoxCaps 客户端的所有功能模块。
 
 模块架构：
 - state: 客户端状态管理
@@ -24,9 +24,9 @@ setup_logger('client', level=Config.log_level)
 logger = get_logger('client')
 
 # 门面类
-from core.client.app import CapsWriterClient
+from core.client.app import VoxCapsClient
 
 __all__ = [
-    'CapsWriterClient',
+    'VoxCapsClient',
 ]
 

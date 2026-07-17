@@ -12,7 +12,7 @@ class HotwordRadar:
     [Trie 树加速版] 高性能热词召回组件
     
     优化核心：
-    1. 字符级 Trie 树：合并所有热词的前缀，CapsWriter 和 CapsWriter-Offline 只需搜索一次前缀。
+    1. 字符级 Trie 树：合并所有热词的前缀，多个热词共享前缀时只需搜索一次。
     2. 全局状态记忆化：缓存 (frame, trie_node)，消除重复路径搜索。
     3. 极速剪枝：基于 Trie 节点的子节点字典，快速过滤 Top-K 中无关的 Token。
     """
@@ -275,4 +275,3 @@ class HotwordRadar:
                            for t, f in zip(h["matched_tokens"], h["frame_indices"])]
             })
         return final
-
