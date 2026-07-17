@@ -31,6 +31,10 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'uv sync failed.' }
     }
 
+    Write-Host '[VoxCaps] Preparing the pinned llama.cpp Vulkan runtime...' -ForegroundColor Cyan
+    & $uvExecutable @uvPrefix run --no-sync python scripts/prepare-llama-runtime.py
+    if ($LASTEXITCODE -ne 0) { throw 'llama.cpp Vulkan runtime preparation failed.' }
+
     $commonArgs = @('--noconfirm')
     if (-not $SkipClean) { $commonArgs += '--clean' }
 

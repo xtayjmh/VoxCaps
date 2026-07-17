@@ -43,6 +43,7 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+.debug/
 nosetests.xml
 coverage.xml
 *.cover
@@ -190,5 +191,6 @@ file_*.txt
 release
 *.dll 
 *.exe
+core/server/engines/llama/bin/runtime-manifest.json
 
 models/**/*.cfg

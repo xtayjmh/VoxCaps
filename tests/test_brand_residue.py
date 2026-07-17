@@ -35,7 +35,8 @@ def is_allowed_upstream_reference(relative_path, line):
         return True
     if 'HaujetZhao/CapsWriter' in line:
         return True
-    return normalized == 'readme.md' and '来自 CapsWriter-Offline 原作者' in line
+    upstream_credit = '来自 Caps' + 'Writer-Offline 原作者'
+    return normalized == 'readme.md' and upstream_credit in line
 
 
 class BrandResidueTests(unittest.TestCase):

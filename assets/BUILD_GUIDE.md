@@ -81,6 +81,14 @@ dist/VoxCaps/
 
 ## 🚀 打包命令
 
+正式 Windows 双包请统一使用：
+
+```powershell
+pwsh -File scripts/build-windows-packages.ps1
+```
+
+脚本会先下载固定版本的 llama.cpp Vulkan 官方二进制，校验 SHA-256，再把 Fun-ASR-Nano、Qwen3-ASR 和对齐器共用的 DLL 放入 `core/server/engines/llama/bin`。缓存位于 `.cache/llama.cpp`，不会提交到仓库。不要从其他机器手工拼装 DLL；版本不一致容易在 Worker 加载模型时直接退出。
+
 ### 完整打包（服务端 + 客户端）
 
 ```bash
@@ -339,8 +347,9 @@ excludes = [
 - 使用 `--log-level DEBUG` 查看打包日志
 
 **2. 找不到 DLL 文件**
-- 检查 `internal/` 目录是否包含所需的 DLL
-- 检查 DLL 是否被错误排除
+- 运行 `uv run --no-sync python scripts/prepare-llama-runtime.py`，确认固定版本运行库下载和 SHA-256 校验成功
+- 运行 `uv run --no-sync python scripts/verify-windows-packages.py --package-root <完整包目录>`，检查 llama.cpp、Vulkan、soundfile 和 libsndfile 是否齐全
+- `core/server/engines/llama/bin` 是所有 GGUF 引擎共用的唯一运行库目录，不要再向各模型引擎目录复制不同版本 DLL
 
 **3. 模型文件加载失败**
 - 确认 `models/` 连接符创建成功

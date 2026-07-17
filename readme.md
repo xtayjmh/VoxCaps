@@ -90,6 +90,7 @@ VoxCaps 的特别之处在于追求：
 
 1.  **准备环境**：确保安装了 [VC++ 运行库](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist)。若要使用文件转录功能，还需安装 [ffmpeg](https://ffmpeg.org/download.html) 并确保其在系统 PATH 中。
 2.  **下载解压**：下载 [VoxCaps Latest Release](https://github.com/xtayjmh/VoxCaps/releases/latest) 里的软件本体；模型仍从原项目的 [Models Release](https://github.com/HaujetZhao/CapsWriter-Offline/releases/tag/models) 下载，解压到 `models` 文件夹中对应模型目录。
+    Windows 完整包已经包含 Fun-ASR-Nano、Qwen3-ASR 等 GGUF 引擎所需的 llama.cpp Vulkan 运行库以及音频解码依赖，不需要另外寻找或复制 DLL；按模型目录说明放好模型后即可启动 Server。
 3.  **启动服务**：双击 `start_server.exe`，**它会自动最小化到托盘菜单**。
 4.  **启动听写**：双击 `start_client.exe`，**它会自动最小化到托盘菜单**。
 5.  **开始录音**：按住 `CapsLock键` 或 `鼠标侧键X2` 就可以说话了！

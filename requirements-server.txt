@@ -3,6 +3,7 @@ sherpa-onnx
 numpy
 gguf
 onnxruntime-directml
+soundfile
 
 # basic
 rich

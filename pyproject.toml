@@ -41,6 +41,7 @@ server = [
     "pystray",
     "rich",
     "sherpa-onnx",
+    "soundfile",
     "tkhtmlview",
     "watchdog",
     "websockets",

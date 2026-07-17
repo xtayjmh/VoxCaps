@@ -12,6 +12,7 @@ from typing import List, Union, Set, Optional
 from pathlib import Path
 from os.path import relpath
 from . import logger
+from ...llama_runtime import llama_runtime_dir, require_llama_runtime
 
 # =========================================================================
 # Configuration
@@ -211,8 +212,8 @@ def bind_llama_lib():
     if llama is not None:
         return
 
-    # 获取库文件所在目录 (模块目录下的 bin)
-    lib_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bin")
+    # 所有 GGUF 引擎共用同一份原生运行库，避免发行包依赖本地目录连接。
+    lib_dir = os.fspath(llama_runtime_dir())
 
     # DLL 命名处理
     if sys.platform == "win32":
@@ -412,7 +413,7 @@ def init():
     切换目录，初始化 llama.cpp lib
     """
     original_cwd = Path.cwd()
-    lib_dir = Path(__file__).parent / 'bin'
+    lib_dir = require_llama_runtime()
 
     # 跳转到 dll 所在目录，并将其加到 Path
     os.chdir(lib_dir)

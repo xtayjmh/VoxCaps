@@ -9,6 +9,19 @@ from pathlib import Path
 
 from PIL import Image
 
+try:
+    from scripts.llama_runtime_manifest import (
+        LLAMA_RUNTIME_MARKER,
+        LLAMA_RUNTIME_RELATIVE_DIR,
+        REQUIRED_LLAMA_DLLS,
+    )
+except ModuleNotFoundError:
+    from llama_runtime_manifest import (
+        LLAMA_RUNTIME_MARKER,
+        LLAMA_RUNTIME_RELATIVE_DIR,
+        REQUIRED_LLAMA_DLLS,
+    )
+
 
 REQUIRED_ICON_SIZES = {
     (16, 16), (24, 24), (32, 32), (48, 48),
@@ -21,6 +34,15 @@ SHARED_FILES = (
     'core/client/audio/session.py',
     'core/client/island/view.py',
     'core/ui/window_icon.py',
+)
+GGUF_RUNTIME_FILES = tuple(
+    (LLAMA_RUNTIME_RELATIVE_DIR / name).as_posix()
+    for name in (*REQUIRED_LLAMA_DLLS, LLAMA_RUNTIME_MARKER)
+)
+SERVER_RUNTIME_FILES = (
+    'internal/soundfile.pyc',
+    'internal/_soundfile.pyc',
+    'internal/_soundfile_data/libsndfile_x64.dll',
 )
 
 
@@ -46,6 +68,16 @@ def _verify_runtime_version(data: bytes, relative: str) -> None:
         raise RuntimeError(f'ZIP 内运行时版本不是 {RELEASE_VERSION}：{relative}')
 
 
+def verify_full_package_root(package_root: Path) -> Path:
+    package_root = package_root.resolve()
+    for relative in (*GGUF_RUNTIME_FILES, *SERVER_RUNTIME_FILES):
+        runtime_file = package_root / relative
+        if not runtime_file.is_file():
+            raise RuntimeError(f'完整包缺少 Server 运行库：{runtime_file}')
+    print(f'[VoxCaps] 完整包 Server 运行库检查通过：{package_root}')
+    return package_root
+
+
 def verify_packages(release_dir: Path) -> tuple[Path, Path]:
     full_zip = _newest(
         path for path in release_dir.glob('VoxCaps-*.zip')
@@ -57,6 +89,10 @@ def verify_packages(release_dir: Path) -> tuple[Path, Path]:
         full_names = set(full.namelist())
         client_names = set(client.namelist())
         for required in ('start_client.exe', 'start_server.exe', 'config_server.py'):
+            _member(full, 'VoxCaps', required)
+        for required in GGUF_RUNTIME_FILES:
+            _member(full, 'VoxCaps', required)
+        for required in SERVER_RUNTIME_FILES:
             _member(full, 'VoxCaps', required)
         _member(client, 'VoxCaps-Client', 'start_client.exe')
         for forbidden in ('start_server.exe', 'config_server.py'):
@@ -96,7 +132,11 @@ def verify_packages(release_dir: Path) -> tuple[Path, Path]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--release-dir', type=Path, default=Path('release'))
+    parser.add_argument('--package-root', type=Path)
     args = parser.parse_args()
+    if args.package_root:
+        verify_full_package_root(args.package_root)
+        return
     verify_packages(args.release_dir.resolve())
 
 

@@ -68,6 +68,7 @@ hiddenimports += [
     'pyclip', 
     'numpy',
     'sounddevice',
+    'soundfile',
     'pypinyin',
     'watchdog',
     'typer',
