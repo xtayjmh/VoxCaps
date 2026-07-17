@@ -8,11 +8,19 @@ WebSocket 管理器 (SocketManager)
 
 import asyncio
 import functools
+import logging
 import websockets
 from config_server import ServerConfig as Config
 from .ws_recv import ws_recv
 from .ws_send import ws_send
 from .. import logger # Server module logger
+
+
+# 普通 TCP 端口探测（例如 Test-NetConnection）不会发送 WebSocket 握手。
+# websockets 默认会为每次此类探测打印完整异常栈；连接本身无害且服务状态正常，
+# 因此仅关闭底层协议库的握手噪声。真正的启动、端口和业务错误仍由项目 logger 记录。
+_websocket_protocol_logger = logging.getLogger('voxcaps.websockets.server')
+_websocket_protocol_logger.setLevel(logging.CRITICAL)
 
 
 class SocketManager:
@@ -67,7 +75,8 @@ class SocketManager:
             Config.addr,
             Config.port,
             subprotocols=["binary"],
-            max_size=None
+            max_size=None,
+            logger=_websocket_protocol_logger,
         ) as server:
             self._server = server  # 保存 server 引用，用于外部关闭
 
