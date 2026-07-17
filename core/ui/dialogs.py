@@ -11,6 +11,7 @@ from tkinter import ttk
 from typing import Optional, Callable
 
 from .toast_constants import DEFAULT_FONT_FAMILY
+from .window_icon import apply_window_icon
 from . import logger
 
 # DPI 感知设置（与 toast_base.py 保持一致）
@@ -47,6 +48,7 @@ def create_modal_dialog(
     # 创建 Toplevel 窗口
     dialog = tk.Toplevel()
     dialog.title(title)
+    apply_window_icon(dialog)
 
     # 先隐藏窗口，避免闪烁
     if withdraw:

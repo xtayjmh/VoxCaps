@@ -34,6 +34,12 @@ try {
     $commonArgs = @('--noconfirm')
     if (-not $SkipClean) { $commonArgs += '--clean' }
 
+    Write-Host '[VoxCaps] Generating and validating brand icon assets...' -ForegroundColor Cyan
+    & $uvExecutable @uvPrefix run --no-sync python scripts/generate-brand-icon.py
+    if ($LASTEXITCODE -ne 0) { throw 'Brand icon generation failed.' }
+    & $uvExecutable @uvPrefix run --no-sync python scripts/verify-brand-assets.py
+    if ($LASTEXITCODE -ne 0) { throw 'Brand asset validation failed.' }
+
     Write-Host '[VoxCaps] Building the full Client + Server package...' -ForegroundColor Cyan
     & $uvExecutable @uvPrefix run --no-sync pyinstaller @commonArgs build.spec
     if ($LASTEXITCODE -ne 0) { throw 'Full package PyInstaller build failed.' }
@@ -41,6 +47,13 @@ try {
     Write-Host '[VoxCaps] Building the client-only package...' -ForegroundColor Cyan
     & $uvExecutable @uvPrefix run --no-sync pyinstaller @commonArgs build-client.spec
     if ($LASTEXITCODE -ne 0) { throw 'Client-only PyInstaller build failed.' }
+
+    Write-Host '[VoxCaps] Validating embedded EXE icon resources...' -ForegroundColor Cyan
+    & $uvExecutable @uvPrefix run --no-sync python scripts/verify-brand-assets.py --executables `
+        'dist\VoxCaps\start_client.exe' `
+        'dist\VoxCaps\start_server.exe' `
+        'dist\VoxCaps-Client\start_client.exe'
+    if ($LASTEXITCODE -ne 0) { throw 'Built EXE icon resource validation failed.' }
 
     Write-Host '[VoxCaps] Creating both ZIP release packages...' -ForegroundColor Cyan
     & $uvExecutable @uvPrefix run --no-sync python zip_release.py

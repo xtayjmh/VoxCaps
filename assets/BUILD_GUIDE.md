@@ -1,5 +1,17 @@
 # PyInstaller 打包指南
 
+## VoxCaps 品牌图标
+
+- 可编辑矢量源文件：`assets/voxcaps-icon.svg`
+- Windows 多尺寸图标：`assets/icon.ico`
+- 生成命令：`uv run --no-sync python scripts/generate-brand-icon.py`
+- 资产校验：`uv run --no-sync python scripts/verify-brand-assets.py`
+
+`icon.ico` 固定包含 16、24、32、48、64、128、256 像素图层。
+完整包和纯客户端包都引用同一个图标；构建脚本还会对三个 EXE 执行
+Windows 图标资源检查。修改品牌图形时，请同步更新 SVG 与生成脚本中的
+规范化几何，再重新生成并提交 ICO。
+
 ## 📦 新版本 PyInstaller 打包配置
 
 ### 目录结构设计

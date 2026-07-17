@@ -13,6 +13,7 @@ from typing import Optional
 
 from config_client import ClientConfig as Config
 from core.client.state import console
+from .window_icon import apply_window_icon
 from . import logger
 
 
@@ -98,6 +99,7 @@ class _ContextDialogManager:
     def _run_tkinter(self):
         """在独立线程中运行 Tkinter 主循环"""
         self.root = tk.Tk()
+        apply_window_icon(self.root)
         self.root.withdraw()
 
         # 设置窗口关闭时的行为

@@ -16,6 +16,7 @@ from .dialogs import (
     wait_window,
 )
 from .toast_constants import DEFAULT_FONT_FAMILY
+from .window_icon import apply_window_icon
 from . import logger
 
 
@@ -39,6 +40,7 @@ class ContextDialog:
         """
         if parent is None:
             parent = tk.Tk()
+            apply_window_icon(parent)
             parent.withdraw()  # 隐藏主窗口
 
         self.parent = parent

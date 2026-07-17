@@ -16,6 +16,7 @@ from shutil import copyfile, rmtree
 # - True: 包含 onnxruntime_providers_cuda.dll，支持 GPU 加速（需要在用户机器安装 CUDA 和 CUDNN）
 # - False: 不包含 CUDA provider，只使用 CPU 模式（打包体积更小，兼容性更好）
 INCLUDE_CUDA_PROVIDER = False
+ICON_PATH = join('assets', 'icon.ico')
 
 # ====================================================
 
@@ -203,7 +204,7 @@ exe_1 = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['assets\\\\icon.ico'],
+    icon=ICON_PATH,
     # 所有第三方依赖放入 internal 目录
     contents_directory='internal',
 )
@@ -223,7 +224,7 @@ exe_2 = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['assets\\\\icon.ico'],
+    icon=ICON_PATH,
     # 所有第三方依赖放入 internal 目录
     contents_directory='internal',
 )

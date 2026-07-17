@@ -9,6 +9,8 @@ from queue import Empty, Queue
 from threading import Event
 from time import monotonic
 
+from core.ui.window_icon import apply_window_icon
+
 from .state_machine import IslandEvent, IslandStage, IslandStateMachine
 
 
@@ -39,6 +41,7 @@ class DynamicIslandView:
         root = tk.Tk()
         self.root = root
         root.title('VoxCaps Dynamic Island')
+        apply_window_icon(root)
         root.withdraw()
         root.overrideredirect(True)
         root.configure(bg=self.TRANSPARENT)

@@ -28,6 +28,7 @@ if __name__ == "__main__":
         TK_SCALING_FACTOR,
     )
     from core.ui.toast_logger import get_toast_logger
+    from core.ui.window_icon import apply_window_icon
 else:
     from .toast_text import ToastWindowText
     from .toast_label import ToastWindowLabel
@@ -38,6 +39,7 @@ else:
         TK_SCALING_FACTOR,
     )
     from .toast_logger import get_toast_logger
+    from .window_icon import apply_window_icon
 
 # 用于类型注解的前向引用
 if TYPE_CHECKING:
@@ -133,6 +135,7 @@ class ToastMessageManager:
         """在子线程中运行 Tkinter 主循环"""
         # 创建隐藏的主窗口
         self.root = tk.Tk()
+        apply_window_icon(self.root)
         self.root.withdraw()
         self.root.tk.call('tk', 'scaling', TK_SCALING_FACTOR)
 

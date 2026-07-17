@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 256 256"
+     role="img"
+     aria-labelledby="title description">
+  <title id="title">VoxCaps 图标</title>
+  <desc id="description">深色圆角方形内，由五根青蓝渐变声波柱组成字母 V。</desc>
+  <defs>
+    <linearGradient id="background" x1="24" y1="20" x2="232" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#151d34"/>
+      <stop offset="1" stop-color="#070b16"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="52" y1="64" x2="204" y2="194" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#08e2f2"/>
+      <stop offset="0.52" stop-color="#168cff"/>
+      <stop offset="1" stop-color="#6a63ff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景留出安全边距，缩到 16px 时仍保留清楚的圆角轮廓。 -->
+  <rect x="8" y="8" width="240" height="240" rx="54" fill="url(#background)"/>
+  <rect x="9" y="9" width="238" height="238" rx="53"
+        fill="none" stroke="#263653" stroke-width="2"/>
+
+  <!-- 五根粗声波柱的下端共同形成 V；不依赖字体或细小麦克风图案。 -->
+  <g fill="url(#wave)">
+    <rect x="52" y="86" width="24" height="52" rx="12"/>
+    <rect x="84" y="69" width="24" height="100" rx="12"/>
+    <rect x="116" y="52" width="24" height="150" rx="12"/>
+    <rect x="148" y="69" width="24" height="100" rx="12"/>
+    <rect x="180" y="86" width="24" height="52" rx="12"/>
+  </g>
+</svg>
