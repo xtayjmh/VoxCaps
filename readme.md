@@ -10,7 +10,7 @@
 
 本项目基于 [HaujetZhao/CapsWriter-Offline](https://github.com/HaujetZhao/CapsWriter-Offline) 二次开发。感谢原作者 Haujet Zhao 提供离线语音识别、客户端/服务端通信、热词和文本处理等核心能力。
 
-VoxCaps 不是原项目的官方发行版。原项目版权和 MIT License 均完整保留，详细来源见 [NOTICE.md](NOTICE.md)。在原仓库基础上，VoxCaps 3.0.0 主要增加和调整了：
+VoxCaps 不是原项目的官方发行版。原项目版权和 MIT License 均完整保留，详细来源见 [NOTICE.md](NOTICE.md)。在原仓库基础上，VoxCaps 3.x 主要增加和调整了：
 
 - **客户端内置灵动岛**：无需额外脚本，以琥珀、青蓝、紫色分别反馈麦克风准备、录音和识别状态，成功或失败后立即隐藏；
 - **CapsLock 按需麦克风**：启动只预热一次，空闲不持续占用；短按保持大小写功能，长按超过 250 毫秒才进入语音输入，并保留开头音频；

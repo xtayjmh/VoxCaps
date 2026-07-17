@@ -1,6 +1,6 @@
 [project]
 name = "voxcaps"
-version = "3.0.0"
+version = "3.0.1"
 description = "Local-first Windows speech input with an integrated dynamic status island"
 requires-python = ">=3.10,<3.14"
 
