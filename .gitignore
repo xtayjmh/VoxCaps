@@ -171,6 +171,10 @@ logs/
 .vscode
 .agent
 
+# 本地 AI 工作流记录与仓库自动化配置不随产品源码发布
+.ai-workflow/
+.github/workflows/
+
 diag*.py
 test_*.py 
 test_*.ipynb 

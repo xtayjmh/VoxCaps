@@ -52,8 +52,6 @@ dynamic_island_bottom_margin = 18   # 距 Windows 可用工作区底边的距离
 
 ZIP 文件输出到 `release`。本机需要 Python 和 uv；若尚未安装 uv，可运行 `python -m pip install uv`。ZIP 使用 Python 标准库生成，不再依赖 7-Zip。普通用户不需要安装 uv，直接使用发布页中的 ZIP 即可。
 
-GitHub Actions 工作流 `.github/workflows/windows-packages.yml` 也支持手动触发，或在推送 `v*` 标签时构建并上传两个产物。
-
 构建脚本会依次执行完整单元测试、源码编译、SVG/ICO 图层检查、三个 EXE 图标资源检查，以及两个 ZIP 的内容与共享行为文件一致性检查；任一步失败都不会生成“成功”提示。
 
 ## Windows 手工验收清单

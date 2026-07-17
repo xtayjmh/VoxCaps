@@ -8,9 +8,16 @@
 
 ## 项目说明
 
-本项目基于 [HaujetZhao/CapsWriter-Offline](https://github.com/HaujetZhao/CapsWriter-Offline) 二次开发。感谢原作者 Haujet Zhao 提供优秀的离线语音输入核心功能。
+本项目基于 [HaujetZhao/CapsWriter-Offline](https://github.com/HaujetZhao/CapsWriter-Offline) 二次开发。感谢原作者 Haujet Zhao 提供离线语音识别、客户端/服务端通信、热词和文本处理等核心能力。
 
-VoxCaps 主要维护客户端状态反馈、局域网使用体验、可复现构建和后续图形化能力。原项目版权和 MIT License 均完整保留；本项目不是原项目的官方发行版，详细来源见 [NOTICE.md](NOTICE.md)。
+VoxCaps 不是原项目的官方发行版。原项目版权和 MIT License 均完整保留，详细来源见 [NOTICE.md](NOTICE.md)。在原仓库基础上，VoxCaps 3.0.0 主要增加和调整了：
+
+- **客户端内置灵动岛**：无需额外脚本，以琥珀、青蓝、紫色分别反馈麦克风准备、录音和识别状态，成功或失败后立即隐藏；
+- **CapsLock 按需麦克风**：启动只预热一次，空闲不持续占用；短按保持大小写功能，长按超过 250 毫秒才进入语音输入，并保留开头音频；
+- **连续口述顺序送达**：允许上一段识别时继续录制，结果严格按录音顺序上屏；
+- **独立 VoxCaps 品牌**：统一窗口、托盘、客户端和服务端 EXE 的多尺寸 Windows 图标；
+- **可复现双包发布**：提供客户端+服务端完整包与纯客户端包，并自动检查测试、版本、图标和 ZIP 内容一致性；
+- **使用说明增强**：补充局域网客户端、麦克风权限、灵动岛状态，以及中文语境夹英文单词的模型选择建议。
 
 ## ✨ 核心特性
 
