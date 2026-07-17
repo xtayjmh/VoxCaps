@@ -82,6 +82,9 @@ class ProcessManager:
                 if status is True:
                     # 收到 True 说明模型加载成功
                     break
+                if isinstance(status, dict) and status.get('kind') == 'worker_startup_error':
+                    self._handle_startup_error(status)
+                    return
             except (queue.Empty, OSError):
                 if self._process and not self._process.is_alive():
                     self._handle_unexpected_exit()
@@ -98,9 +101,21 @@ class ProcessManager:
         exit_code = self._process.exitcode
         if exit_code != 0:
             logger.error(f"识别子进程意外退出! ExitCode: {exit_code}")
-            logger.error("这通常是由于模型损坏、底层库冲突或系统资源不足导致的。")
+            logger.error(
+                "未收到 Python 异常报告；可能是原生库或驱动崩溃。请查看 "
+                "logs/worker_native_crash_latest.log。"
+            )
         
         # 请求主系统同步退出
+        self.app.stop()
+
+    def _handle_startup_error(self, status):
+        """显示并记录 Worker 传回的真实启动异常。"""
+        if self._process:
+            self._process.join(timeout=1)
+        logger.error(f"识别 Worker 加载失败：{status.get('message', '<unknown>')}")
+        logger.error(f"完整诊断日志：{status.get('diagnostics_file', '<unknown>')}")
+        logger.debug(status.get('traceback', ''))
         self.app.stop()
 
     def stop(self):
@@ -121,4 +136,3 @@ class ProcessManager:
             if self._process.is_alive():
                 logger.debug("子进程未响应优雅退出，执行强制终止")
                 self._process.terminate()
-            

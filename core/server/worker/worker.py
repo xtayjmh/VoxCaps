@@ -10,6 +10,7 @@ import os
 import sys
 import signal
 import atexit
+import traceback
 from multiprocessing import Queue
 from multiprocessing.managers import ListProxy
 from platform import system
@@ -18,6 +19,7 @@ from .model_loader import ModelLoader
 from .task_handler import TaskHandler
 from ..state import WorkerState
 from . import logger
+from .diagnostics import write_worker_crash_report
 
 
 class RecognizerWorker:
@@ -33,6 +35,7 @@ class RecognizerWorker:
         # 2. 初始化核心组件 (注入 state)
         self.loader = ModelLoader()
         self.handler = TaskHandler(queue_in, queue_out, sockets_id, self.state)
+        self.queue_out = queue_out
         
         # 3. 状态追踪
         self.stdin_fn = stdin_fn
@@ -120,4 +123,24 @@ class RecognizerWorker:
         """
         供 multiprocessing 调用
         """
-        self.start()
+        try:
+            self.start()
+        except BaseException as exc:
+            traceback_text = traceback.format_exc()
+            diagnostics_file = write_worker_crash_report(exc, traceback_text)
+            payload = {
+                'kind': 'worker_startup_error',
+                'message': f'{type(exc).__name__}: {exc}',
+                'traceback': traceback_text,
+                'diagnostics_file': diagnostics_file,
+            }
+            try:
+                self.queue_out.put(payload)
+            except BaseException:
+                pass
+            logger.critical(
+                f'Worker 启动失败，完整诊断已写入：{diagnostics_file}\n{traceback_text}'
+            )
+            raise
+        finally:
+            self.stop()
