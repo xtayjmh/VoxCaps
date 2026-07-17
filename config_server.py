@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 # 版本信息
-__version__ = '2.6'
+__version__ = '3.0.0'
 
 # 项目根目录
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -173,4 +173,3 @@ class ForceAlignerGGUFArgs:
     # 对齐细节
     n_ctx = 3072                # 上下文窗口大小
     dml_pad_to = 30             # 开启 DirectML 加速时，短音频统一填充到指定长度，有加速效果
-

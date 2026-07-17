@@ -273,7 +273,7 @@ start_client.exe
 
 在 [`config.py`](../config.py) 中定义版本号：
 ```python
-__version__ = '2.6'
+__version__ = '3.0.0'
 ```
 
 ### 2. 模型管理
@@ -361,4 +361,4 @@ excludes = [
 **PyInstaller 版本**: 6.0+
 **Python 版本**: 3.8+
 **Sherpa-ONNX 版本**: 1.12.20
-**项目版本**: VoxCaps v2.6
+**项目版本**: VoxCaps v3.0.0

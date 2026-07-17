@@ -34,6 +34,12 @@ try {
     $commonArgs = @('--noconfirm')
     if (-not $SkipClean) { $commonArgs += '--clean' }
 
+    Write-Host '[VoxCaps] Running automated tests and source compilation checks...' -ForegroundColor Cyan
+    & $uvExecutable @uvPrefix run --no-sync python -m unittest discover -s tests -v
+    if ($LASTEXITCODE -ne 0) { throw 'Automated tests failed.' }
+    & $uvExecutable @uvPrefix run --no-sync python -m compileall -q core tests scripts start_client.py start_server.py config_client.py config_server.py
+    if ($LASTEXITCODE -ne 0) { throw 'Source compilation check failed.' }
+
     Write-Host '[VoxCaps] Generating and validating brand icon assets...' -ForegroundColor Cyan
     & $uvExecutable @uvPrefix run --no-sync python scripts/generate-brand-icon.py
     if ($LASTEXITCODE -ne 0) { throw 'Brand icon generation failed.' }
@@ -58,6 +64,8 @@ try {
     Write-Host '[VoxCaps] Creating both ZIP release packages...' -ForegroundColor Cyan
     & $uvExecutable @uvPrefix run --no-sync python zip_release.py
     if ($LASTEXITCODE -ne 0) { throw 'ZIP packaging failed.' }
+    & $uvExecutable @uvPrefix run --no-sync python scripts/verify-windows-packages.py --release-dir release
+    if ($LASTEXITCODE -ne 0) { throw 'ZIP content validation failed.' }
 
     Write-Host "[VoxCaps] Build complete: $projectRoot\release" -ForegroundColor Green
 }

@@ -80,7 +80,9 @@ def verify_executable(executable: Path) -> None:
         1,
     )
     try:
-        if extracted != 1 or not large.value or not small.value:
+        # Windows 版本之间返回值可能是图标组数，也可能是实际写入的
+        # 大/小句柄数；两种情况下都只要求调用成功且两个句柄有效。
+        if extracted < 1 or not large.value or not small.value:
             raise RuntimeError(f'EXE 大/小图标资源不完整：{executable}')
     finally:
         if large.value:
