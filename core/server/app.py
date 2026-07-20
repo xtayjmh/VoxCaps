@@ -102,6 +102,8 @@ class VoxCapsServer:
 
         # 拉起识别子进程
         self.process_manager.start()
+        if not self.is_alive:
+            return
         
         # 开启网络服务监听 (接管当前线程直至退出)
         try:

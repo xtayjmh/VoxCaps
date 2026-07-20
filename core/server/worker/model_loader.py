@@ -6,7 +6,6 @@
 """
 
 import time
-from core.server.state import console
 from config_server import (
     ServerConfig as Config, 
     ModelPaths
@@ -37,10 +36,6 @@ class ModelLoader:
         2. 扫描引擎能力 (Capabilities)
         3. 自适应挂载缺失能力的插件 (Punc, Aligner)
         """
-        # 1. 延迟导入通用库
-        with console.status("载入模块中...", spinner="bouncingBall", spinner_style="yellow"):
-            import sherpa_onnx
-        
         t1 = time.time()
         model_type = Config.model_type.lower()
         logger.info(f"Loader 开始初始化语音系统 (引擎: {model_type})")
