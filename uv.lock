@@ -4050,7 +4050,7 @@ wheels = [
 
 [[package]]
 name = "voxcaps"
-version = "3.0.1"
+version = "3.0.2"
 source = { virtual = "." }
 
 [package.dev-dependencies]
